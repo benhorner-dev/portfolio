@@ -1,0 +1,25 @@
+pre-commit:
+  commands:
+    format:
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css,html,graphql}"
+      run: bunx biome format --config-path ./.config/biome.json --write {staged_files}
+      stage_fixed: true
+    lint:
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css,html,graphql}"
+      run: bunx biome check --config-path ./.config/biome.json --write {staged_files}
+      stage_fixed: true
+    secretlint:
+      run: bunx secretlint --secretlintrc .config/secretlintrc.json {staged_files}
+      stage_fixed: false
+
+pre-push:
+  commands:
+    bun-audit:
+      run: bun audit --audit-level=moderate
+    test:
+      run: bunx turbo test:unit
+
+commit-msg:
+  commands:
+    "lint commit message":
+      run: bunx commitlint --config ./.config/commitlint.config.js --edit {1}

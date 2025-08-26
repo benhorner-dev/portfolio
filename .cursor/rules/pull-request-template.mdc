@@ -1,0 +1,12 @@
+---
+type: agentRequested
+description: "Use the official GitHub PR template when creating or describing pull requests"
+---
+
+# Pull Request Template Reference
+
+When creating or describing pull requests, use the official template found here:
+
+@.github/PULL_REQUEST_TEMPLATE.md
+
+Follow all sections, checklists, and requirements specified in that template.

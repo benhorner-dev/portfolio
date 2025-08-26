@@ -1,0 +1,41 @@
+---
+type: autoAttached
+globs: ["*.test.ts", "*.spec.ts", "src/**/*.ts", "src/**/*.tsx"]
+---
+
+# Testing Requirements
+
+## Unit Testing Standards
+- **100% unit test coverage required for new code**
+- All business logic must have unit tests
+- All utility functions must have unit tests
+- All data transformation logic must have unit tests
+
+## Coverage Exclusions
+Must be documented and justified:
+- Configuration files
+- Database migration scripts
+- Third-party integrations (covered by integration tests)
+- Framework boilerplate code
+
+## Testing Principles
+- **Extract testable logic into pure functions**
+- Test interactions between components with mocked dependencies
+- Focus on critical business workflows
+- Use test containers for database testing when appropriate
+
+## Integration Testing
+- Test critical workflows with mocked external dependencies
+- Mock external APIs, databases, file systems
+- Use separate test configurations
+- Maintain test isolation
+
+## E2E Testing
+- E2E tests for critical flows only (staging environment)
+- Tests must not interfere with each other
+- Critical flows: user registration, payment processing, core business workflows
+
+## Testing Tools
+- **TypeScript/JavaScript**: vitest with coverage reports
+- **Database**: Test containers or in-memory databases
+- **Web Applications**: Cypress for E2E

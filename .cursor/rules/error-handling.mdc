@@ -1,0 +1,44 @@
+---
+type: agentRequested
+description: "Enforce fail-fast error handling patterns and custom error types"
+---
+
+# Fail Fast Error Handling
+
+## Core Principles
+1. **Validate inputs immediately** - fail at the boundary
+2. **Don't catch errors unless you can meaningfully handle them**
+3. **Let errors bubble up** to appropriate handlers
+4. **Use custom error types** for specific error scenarios
+5. **Centralize error handling** at high levels of abstraction
+
+## Implementation Pattern
+
+### Low-level functions: validate and throw
+- Validate inputs immediately at function boundaries
+- Throw specific custom errors for different failure modes
+- Don't catch errors you can't handle meaningfully
+
+### Mid-level functions: let errors propagate
+- Don't catch errors unless you can add meaningful context
+- Let domain errors bubble up to appropriate handlers
+- Focus on core business logic
+
+### High-level functions: catch and handle appropriately
+- Catch specific error types and handle them appropriately
+- Log errors with proper context
+- Convert domain errors to user-facing messages
+- Let unexpected errors bubble to global handlers
+
+## Custom Error Types
+Create domain-specific error classes:
+- `ValidationError` - for input validation failures
+- `BusinessRuleError` - for business logic violations
+- `ResourceNotFoundError` - for missing resources
+- `InsufficientPermissionsError` - for authorization failures
+
+## Error Handling Anti-Patterns
+- Catching and ignoring errors
+- Generic try/catch blocks that handle all errors the same way
+- Converting errors to null/undefined return values
+- Logging errors and then re-throwing without adding context

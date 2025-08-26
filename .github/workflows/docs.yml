@@ -1,0 +1,53 @@
+name: Sync Documentation to Wiki
+
+on:
+  push:
+    branches:
+      # TODO: change below to main to run
+      - NEVER
+
+jobs:
+  sync-wiki:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Generate documentation
+        run: bunx typedoc --options ./.config/typedoc.json
+
+      - name: Checkout wiki
+        uses: actions/checkout@v4
+
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
+          token: ${{ secrets.WIKI_TOKEN }}
+
+
+      - name: Run wiki sync script
+        run: ./tools/docs/sync-wiki.sh
+
+      - name: Commit and push wiki changes
+        run: |
+          cd wiki
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git add .
+          git commit -m "docs: auto-sync documentation from main branch"
+          git push origin HEAD

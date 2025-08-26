@@ -1,0 +1,74 @@
+---
+type: autoAttached
+description: "Enforce error boundary patterns for React components in atomic design"
+globs: ["**/organisms/**/*.{ts,tsx}", "**/templates/**/*.{ts,tsx}"]
+---
+
+# React Error Boundaries
+
+## Requirements
+- **All organisms MUST be wrapped** in error boundaries
+- **Templates SHOULD have** page-level error boundaries for fallback
+- **Always provide meaningful fallback UI** - never blank screens
+- **Log errors** to monitoring service with context
+
+## Implementation Pattern
+
+### Base Error Boundary (TypeScript)
+```typescript
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ComponentType<{ error?: Error }>;
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
+
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    this.props.onError?.(error, errorInfo);
+    // Log to monitoring service
+  }
+
+  render() {
+    if (this.state.hasError) {
+      const Fallback = this.props.fallback || DefaultErrorFallback;
+      return <Fallback error={this.state.error} />;
+    }
+    return this.props.children;
+  }
+}
+```
+
+### Usage Pattern
+```typescript
+// Organisms - Primary boundaries
+<ErrorBoundary fallback={ComponentError} onError={logError}>
+  <YourOrganism {...props} />
+</ErrorBoundary>
+
+// Templates - Secondary boundaries
+<ErrorBoundary fallback={PageError} onError={logPageError}>
+  <YourTemplate>
+    {/* Organisms with their own boundaries */}
+  </YourTemplate>
+</ErrorBoundary>
+```
+
+## Standards
+1. **Boundary placement**: Organism-level (required), Template-level (recommended)
+2. **Fallback components**: Component-specific error UI, never generic messages
+3. **Error logging**: Include component name, props, and user context
+4. **Testing**: Include error boundary tests for all organisms

@@ -1,0 +1,37 @@
+---
+type: autoAttached
+globs: ["*.ts", "*.tsx", "*.js", "*.jsx"]
+---
+
+# Code Style Rules
+
+## Function Declaration
+- Use arrow functions as the default choice
+- Only use regular functions when you need hoisting, constructor functions, object methods requiring `this`, or the `arguments` object
+
+## Function Parameters
+- Limit functions to 3 parameters or fewer
+- For 4+ parameters, use parameter objects or split the function
+- Group related parameters into objects/structs
+
+## Single Responsibility Principle
+- Each function should do one thing and do it well
+- Functions should operate at the same level of abstraction
+- Don't mix high-level business logic with low-level implementation details
+- Don't mix different concerns (data access, business logic, formatting)
+
+## Control Flow
+- Use early returns and guard clauses to flatten nested logic
+- Handle error/invalid cases first with early returns
+- Avoid else statements when possible
+- Keep the "happy path" as the main flow of the function
+
+## Imports
+- Use absolute imports with aliases (@/) over relative imports
+- Configure path aliases in tsconfig.json
+- Example: `import Button from '@/components/atoms/Button'` instead of `import Button from '../../../components/atoms/Button'`
+
+## Type Organization
+- Prefer colocation - keep types close to where they're used
+- When separating types, order by creation date rather than alphabetical
+- Only separate types when shared across 3+ files or for complex domain models

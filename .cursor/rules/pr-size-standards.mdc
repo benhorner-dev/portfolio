@@ -1,0 +1,39 @@
+---
+type: agentRequested
+description: "Guidelines for keeping pull requests appropriately sized"
+---
+
+# Pull Request Size Guidelines
+
+## Size Limits
+- **Ideal**: 200-400 lines of changes
+- **Maximum**: 800 lines of changes
+- **Red flag**: 1000+ lines requires justification
+
+## Rule: If your PR looks too big, sub-task your Linear ticket
+
+## When to Split PRs
+- **Multiple features** - each feature should be its own PR
+- **Refactoring + new features** - separate refactoring from feature work
+- **Database migrations + code changes** - split schema changes from application logic
+- **Multiple components/modules** - break down by logical boundaries
+
+## How to Sub-task in Linear
+1. **Break down the original ticket** into smaller, focused tasks
+2. **Each sub-task should be independently deployable** when possible
+3. **Create clear dependencies** between sub-tasks in Linear
+4. **Use descriptive sub-task titles** that explain the specific change
+5. **Link related sub-tasks** in PR descriptions
+
+## Benefits of Smaller PRs
+- **Faster review cycles** - easier for reviewers to understand
+- **Reduced merge conflicts** - less time between creation and merge
+- **Easier rollbacks** - granular changes are easier to revert
+- **Better testing** - focused changes are easier to test thoroughly
+- **Improved code quality** - reviewers can focus on details
+
+## Exceptions
+- **Auto-generated code** (migrations, API clients)
+- **Large data files** or configuration updates
+- **Dependency updates** with extensive lock file changes
+- **Critical hotfixes** (but still prefer smaller changes when possible)

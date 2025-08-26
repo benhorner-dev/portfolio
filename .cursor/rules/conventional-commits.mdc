@@ -1,0 +1,47 @@
+---
+type: always
+---
+
+# Conventional Commits Standard
+
+## Format
+All commits **MUST** follow the Conventional Commits specification:
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+## Required Types
+- `feat`: A new feature
+- `fix`: A bug fix
+- `docs`: Documentation only changes
+- `style`: Changes that do not affect code meaning (white-space, formatting, etc.)
+- `refactor`: Code change that neither fixes a bug nor adds a feature
+- `perf`: Code change that improves performance
+- `test`: Adding missing tests or correcting existing tests
+- `chore`: Changes to build process or auxiliary tools
+
+## Examples
+- `feat(auth): add JWT token validation`
+- `fix(payment): resolve null pointer exception in payment processor`
+- `docs(api): update authentication endpoint documentation`
+- `test(user): add unit tests for user registration`
+- `refactor(utils): extract validation helpers`
+- `perf(db): optimize user query with indexing`
+- `chore(deps): update dependency versions`
+
+## Scope Guidelines
+- Use lowercase
+- Keep scopes consistent across the project
+- Common scopes: auth, api, ui, db, tests, config
+- Scope should indicate the area of change
+
+## Description Guidelines
+- Use imperative mood ("add" not "added" or "adds")
+- Keep under 72 characters
+- Don't capitalize first letter
+- Don't end with a period

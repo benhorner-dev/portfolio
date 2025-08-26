@@ -1,0 +1,31 @@
+name: PR Title Lint
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  pr-title-lint:
+    name: Lint PR title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install commitlint
+        run: npm install -g @commitlint/cli @commitlint/config-conventional
+      - name: Lint PR title
+        run: |
+          echo "${{ github.event.pull_request.title }}" | npx commitlint --config ./.config/commitlint.config.js

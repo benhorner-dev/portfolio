@@ -1,0 +1,41 @@
+---
+type: always
+---
+
+# Comments and Documentation Philosophy
+
+## Core Principle
+**If you feel the need to write an inline comment, extract that logic into a well-named function instead.**
+
+## Preferred Approach
+Instead of explaining what code does with comments, make the code self-documenting through:
+- Descriptive function names
+- Clear variable names
+- Extracted functions with single responsibilities
+- Meaningful abstractions
+
+## When Comments Are Acceptable
+Limited cases where inline comments are justified:
+- **External API Quirks**: Document third-party API behavior that isn't obvious
+- **Performance Optimizations**: Explain non-obvious performance trade-offs
+- **Regulatory Requirements**: Reference specific compliance rules or standards
+- **Temporary Workarounds**: Document with issue numbers and removal dates
+
+## Documentation Standards
+### Required Documentation
+- **README.md**: Setup instructions, architecture overview, deployment guide
+- **API Documentation**: OpenAPI/Swagger specifications for all APIs
+- **Architecture Decision Records (ADRs)**: For significant technical decisions
+
+### Complex Logic Documentation
+Complex logic should be documented at the package level:
+- Location: `packages/{package-name}/docs/`
+- Format: Markdown files explaining business logic, algorithms, or workflows
+- Granular detail: Create subdirectories for specific features
+- Example: `packages/frontend/docs/explore/EXPLORE_AGENT.md`
+
+## Anti-Patterns to Avoid
+- Inline comments explaining what code does (extract to functions instead)
+- Comments that duplicate what the code already says
+- Outdated comments that no longer match the code
+- TODO comments without issue numbers or dates

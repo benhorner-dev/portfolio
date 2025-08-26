@@ -1,0 +1,38 @@
+---
+type: agentRequested
+description: "Apply pragmatic design patterns and prevent over-engineering"
+---
+
+# Design Patterns & Clean Code Philosophy
+
+## Core Principle
+Choose pragmatism over dogmatism. Design patterns are tools to solve problems, not goals in themselves.
+
+## When to Use Patterns
+- **Solve Real Problems**: Use patterns to address actual complexity, not theoretical future needs
+- **Improve Readability**: Pattern should make code easier to understand, not harder
+- **Reduce Duplication**: Pattern should eliminate meaningful duplication, not create artificial interfaces
+- **Enable Extension**: Use patterns when you genuinely need extensibility
+
+## When to Avoid Patterns
+- **Premature Abstraction**: Don't abstract until you have at least 3 similar use cases (Rule of Three)
+- **Forced Consistency**: Don't make dissimilar things look similar just for pattern compliance
+- **Over-Engineering**: Simple if/else statements are often better than complex pattern implementations
+- **Pattern for Pattern's Sake**: Don't use patterns just because they exist
+
+## Clean Code Principles
+- **Favor Clarity Over Cleverness**: Write code that's easy to understand, not impressive
+- **Simple Solutions First**: Start with the simplest approach that works
+- **Rule of Three**: Don't abstract until you have three similar implementations
+
+## Red Flags to Watch For
+- Creating interfaces or abstract classes with only one implementation
+- Forcing unrelated code to conform to the same interface
+- Adding layers of abstraction that don't solve actual problems
+- Using complex patterns when simple functions would suffice
+
+## Examples of Over-Engineering to Avoid
+- Strategy pattern for simple conditional logic
+- Factory patterns for objects that don't need complex creation logic
+- Observer patterns for simple callback scenarios
+- Command patterns for basic method calls

@@ -1,0 +1,88 @@
+name: Tag
+description: Setup and run semantic-release
+inputs:
+  checkout:
+    description: "Set to true / false to checkout the project at the same time"
+    required: false
+    default: "true"
+  node_version:
+    description: "Node version to setup. Can set to blank string to disable node setup"
+    required: false
+    default: "20"
+outputs:
+  version:
+    description: "Tag of released version"
+    value: ${{ steps.result.outputs.version }}
+  released:
+    description: "Whether a release was created"
+    value: ${{ steps.result.outputs.released }}
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      if: ${{ inputs.checkout == 'true' }}
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      if: ${{ inputs.node_version != '' }}
+      with:
+        node-version: ${{ inputs.node_version }}
+
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: latest
+
+    - name: Install node modules
+      shell: bash
+      run: |-
+        bun install -g \
+          semantic-release \
+          @semantic-release/exec \
+          @semantic-release/git \
+          semantic-release-major-tag \
+          @commitlint/cli \
+          @commitlint/config-conventional
+        bun add --dev @commitlint/config-conventional
+
+
+    - name: Validate conventional commits
+      shell: bash
+      run: |
+        # Make the validation script executable and run it
+        chmod +x ./tools/ci/validate-commits.sh
+        ./tools/ci/validate-commits.sh
+
+    - name: Release
+      shell: bash
+      run: |
+        # semantic-release will exit 0 regardless of whether a release was made
+        # The successCmd in .releaserc only runs if a release is actually created
+        bunx semantic-release --config ./.config/.releaserc.json || true
+
+        # Check if a release was actually made by looking for our success marker
+        if [ -f "release_status.txt" ] && grep -q "released=true" release_status.txt; then
+          echo "🚀 Release was created"
+          echo "released=true" >> $GITHUB_ENV
+        else
+          echo "⏭️  No release needed"
+          echo "released=false" >> $GITHUB_ENV
+          echo "no-release" > version.txt
+        fi
+
+    - name: Validate output files
+      shell: bash
+      run: >
+        if [[ ! -f version.txt ]]; then
+          echo "version.txt was not created" 1>&2;
+          exit 1;
+        fi
+
+    - id: result
+      name: Set outputs
+      shell: bash
+      run: |
+        VERSION=$(cat version.txt)
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "released=$released" >> $GITHUB_OUTPUT

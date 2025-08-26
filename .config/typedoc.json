@@ -1,0 +1,49 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "Ben Horner's Documentation",
+  "entryPoints": ["../apps/frontend"],
+  "entryPointStrategy": "packages",
+  "out": "../docs/code-docs",
+  "plugin": [
+    "typedoc-plugin-markdown",
+    "typedoc-github-wiki-theme",
+    "typedoc-plugin-mark-react-functional-components"
+  ],
+  "packageOptions": {
+    "entryPoints": ["src/**/*.ts", "src/**/*.tsx"],
+    "exclude": [
+      "**/*.test.*",
+      "**/*.spec.*",
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/*.spec.ts",
+      "**/*.spec.tsx",
+      "**/*.stories.ts",
+      "**/*.stories.tsx",
+      "**/*.d.ts",
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/coverage/**",
+      "**/vendor/**",
+      "**/public/**",
+      "**/resources/**",
+      "**/storage/**",
+      "**/__tests__/**",
+      "**/test/**",
+      "**/tests/**"
+    ]
+  },
+  "readme": "../README.md",
+  "includeVersion": true,
+  "excludeExternals": true,
+  "excludePrivate": true,
+  "excludeNotDocumented": false,
+  "validation": {
+    "notExported": false,
+    "invalidLink": false,
+    "notDocumented": false
+  },
+  "treatWarningsAsErrors": false,
+  "skipErrorChecking": true
+}

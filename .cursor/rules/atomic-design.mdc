@@ -1,0 +1,69 @@
+---
+type: autoAttached
+globs: ["*.tsx", "**/components/**/*.ts", "**/components/**/*.tsx"]
+---
+
+# Atomic Design Pattern
+
+## Core Philosophy
+Build interfaces as hierarchical systems rather than collections of pages.
+
+## Five Stages of Atomic Design
+
+### Atoms
+- **Definition**: Basic HTML elements that cannot be broken down further without losing functionality
+- **Examples**: Form labels, inputs, buttons, headings, icons
+- **Purpose**: Foundational building blocks with their own intrinsic properties
+- **Usage**: Demonstrate all base styles at a glance in pattern libraries
+
+### Molecules
+- **Definition**: Simple groups of atoms functioning together as a unit
+- **Examples**: Search form (label + input + button), card header (avatar + title + subtitle)
+- **Purpose**: Create reusable components that adhere to single responsibility principle
+- **Benefits**: Easier testing, encourages reusability, promotes consistency
+
+### Organisms
+- **Definition**: Complex components composed of groups of molecules, atoms, and other organisms
+- **Examples**: Header (logo + navigation + search), product grid, comment section
+- **Purpose**: Form distinct sections of an interface with contextual meaning
+- **Characteristics**: Can consist of similar or different molecule types
+
+### Templates
+- **Definition**: Page-level objects that place components into a layout structure
+- **Purpose**: Articulate the design's underlying content structure (not final content)
+- **Focus**: Content structure skeleton rather than actual content
+- **Benefits**: Account for dynamic content while providing necessary guardrails
+
+### Pages
+- **Definition**: Specific instances of templates with real representative content
+- **Purpose**: Show what UI looks like with actual content, test design system effectiveness
+- **Benefits**: Final validation, stakeholder sign-off, reveals content-related issues
+
+## Directory Structure
+```
+src/components/
+  atoms/
+    Button/
+    Input/
+    Label/
+  molecules/
+    SearchForm/
+    ProductCard/
+    UserMenu/
+  organisms/
+    Header/
+    ProductGrid/
+    Footer/
+  templates/
+    HomepageTemplate/
+    ProductPageTemplate/
+  pages/
+    Homepage/
+    ProductPage/
+```
+
+## Best Practices
+- **Non-Linear Process**: Don't build atoms first, then molecules. Think of stages as concurrent mental model
+- **Content Awareness**: Design patterns must reflect the nature of content that lives inside them
+- **Reusability**: Focus on creating portable, reusable components
+- **Testing**: Each level should be independently testable
