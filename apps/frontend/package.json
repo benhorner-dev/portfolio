@@ -11,7 +11,7 @@
 		"format": "biome format --write --config-path ../../.config/biome.json",
 		"test:unit": "vitest --run --config ./vitest.unit.config.mts",
 		"test:integration": "vitest --run --config ./vitest.integration.config.mts",
-		"test": "vitest --run --project=all",
+		"test": "vitest --run",
 		"test:e2e": "bunx playwright test",
 		"storybook": "storybook dev -p 6006",
 		"build-storybook": "storybook build"
