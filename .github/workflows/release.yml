@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - feature/smoke-tests
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 concurrency:
@@ -76,10 +77,11 @@ jobs:
           PLAYWRIGHT_BASE_URL: ${{ needs.deploy-frontend-staging.outputs.staging_url }}
         run: |
           bun install
+          bunx playwright install --with-deps
           echo "Running smoke tests against:"
 
           cd apps/frontend
-          # bun run test:smoke
+          bunx playwright test tests/smoke.spec.ts
           # Add your actual smoke test commands here
           echo "✅ Smoke tests passed"
 
