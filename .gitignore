@@ -66,3 +66,4 @@ volumes
 **/stories
 *storybook.log
 storybook-static
+**/build-archive.log
