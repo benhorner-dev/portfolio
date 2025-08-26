@@ -3,10 +3,10 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  plugins: [tsconfigPaths(), react()],
-  test: {
-    environment: "jsdom",
-    include: ["src/**/*.spec.{ts,tsx}"],
-    exclude: ["src/**/*.stories.{js,ts,jsx,tsx}"],
-  },
+	plugins: [tsconfigPaths(), react()],
+	test: {
+		environment: "jsdom",
+		include: ["src/**/*.spec.{ts,tsx}"],
+		exclude: ["src/**/*.stories.{js,ts,jsx,tsx}"],
+	},
 });
