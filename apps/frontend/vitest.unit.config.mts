@@ -11,6 +11,7 @@ export default defineConfig({
       "tests/**",
       "**/*.spec.{ts,tsx}",
       "src/stories/**",
+      "src/**/*.stories.{js,ts,jsx,tsx}",
     ],
     environment: "jsdom",
     coverage: {
@@ -25,6 +26,7 @@ export default defineConfig({
         "src/test/**",
         "node_modules/**",
         "src/stories/**",
+        "src/**/*.stories.{js,ts,jsx,tsx}",
       ],
     },
     clearMocks: true,
