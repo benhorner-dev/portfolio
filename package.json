@@ -7,6 +7,8 @@
 		"@commitlint/cli": "19.8.1",
 		"@commitlint/config-conventional": "19.8.1",
 		"@secretlint/secretlint-rule-preset-recommend": "11.2.0",
+		"@semantic-release/exec": "7.1.0",
+		"@semantic-release/git": "10.0.1",
 		"@testing-library/dom": "10.4.1",
 		"@testing-library/react": "16.3.0",
 		"@vitejs/plugin-react": "5.0.1",
@@ -23,7 +25,25 @@
 	},
 	"packageManager": "bun@1.2.20",
 	"scripts": {
+		"semantic-release": "bunx semantic-release",
 		"docs": "typedoc --options ./.config/typedoc.json"
+	},
+	"release": {
+		"branches": [
+			"main"
+		],
+		"plugins": [
+			"@semantic-release/commit-analyzer",
+			"@semantic-release/release-notes-generator",
+			"@semantic-release/git",
+			"@semantic-release/github",
+			[
+				"@semantic-release/exec",
+				{
+					"successCmd": "echo '${nextRelease.gitTag}' > version.txt && echo 'released=true' > release_status.txt"
+				}
+			]
+		]
 	},
 	"trustedDependencies": [],
 	"workspaces": [
