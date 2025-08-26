@@ -25,12 +25,12 @@ if [ -d "docs" ]; then
 fi
 
 # Copy package docs
-if [ -d "packages" ]; then
-    for package_dir in packages/*/; do
+if [ -d "apps" ]; then
+    for package_dir in apps/*/; do
         if [ -d "${package_dir}docs" ]; then
             package_name=$(basename "$package_dir")
-            mkdir -p "$WIKI_DIR/packages/$package_name"
-            cp -r "${package_dir}docs" "$WIKI_DIR/packages/$package_name/"
+            mkdir -p "$WIKI_DIR/apps/$package_name"
+            cp -r "${package_dir}docs" "$WIKI_DIR/apps/$package_name/"
             echo "✓ Copied $package_name documentation"
         fi
     done
@@ -57,12 +57,12 @@ if [ -d "docs" ]; then
     echo "" >> "$WIKI_DIR/_Sidebar.md"
     echo "### Documentation" >> "$WIKI_DIR/_Sidebar.md"
     echo "" >> "$WIKI_DIR/_Sidebar.md"
-    
-    # Handle code-docs specially - link to packages page
+
+    # Handle code-docs specially - link to apps page
     if [ -d "docs/code-docs" ]; then
-        echo "- [Code Documentation](packages)" >> "$WIKI_DIR/_Sidebar.md"
+        echo "- [Code Documentation](apps)" >> "$WIKI_DIR/_Sidebar.md"
     fi
-    
+
     # Find all other markdown files in docs (excluding code-docs subdirectory)
     find "docs" -name "*.md" -type f -not -path "docs/code-docs/*" | sort | while read -r file; do
         # Use just the filename without extension as the wiki page name
@@ -72,17 +72,17 @@ if [ -d "docs" ]; then
 fi
 
 # Add package docs to sidebar
-if [ -d "packages" ]; then
+if [ -d "apps" ]; then
     echo "" >> "$WIKI_DIR/_Sidebar.md"
-    echo "### Packages" >> "$WIKI_DIR/_Sidebar.md"
-    
-    for package_dir in packages/*/; do
+    echo "### Apps" >> "$WIKI_DIR/_Sidebar.md"
+
+    for package_dir in apps/*/; do
         if [ -d "${package_dir}docs" ]; then
             package_name=$(basename "$package_dir")
             echo "" >> "$WIKI_DIR/_Sidebar.md"
             echo "#### $package_name" >> "$WIKI_DIR/_Sidebar.md"
             echo "" >> "$WIKI_DIR/_Sidebar.md"
-            
+
             # Find all markdown files in package docs
             find "${package_dir}docs" -name "*.md" -type f | sort | while read -r file; do
                 name=$(basename "$file" .md)
