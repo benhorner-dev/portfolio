@@ -60,7 +60,7 @@ if [ -d "docs" ]; then
 
     # Handle code-docs specially - link to apps page
     if [ -d "docs/code-docs" ]; then
-        echo "- [Code Documentation](apps)" >> "$WIKI_DIR/_Sidebar.md"
+        echo "- [Code Documentation](code-docs/home)" >> "$WIKI_DIR/_Sidebar.md"
     fi
 
     # Find all other markdown files in docs (excluding code-docs subdirectory)
@@ -71,7 +71,7 @@ if [ -d "docs" ]; then
     done
 fi
 
-# Add package docs to sidebar
+# Add apps docs to sidebar
 if [ -d "apps" ]; then
     echo "" >> "$WIKI_DIR/_Sidebar.md"
     echo "### Apps" >> "$WIKI_DIR/_Sidebar.md"

@@ -45,7 +45,6 @@ runs:
           @commitlint/config-conventional
         bun add --dev @commitlint/config-conventional
 
-
     - name: Validate conventional commits
       shell: bash
       run: |
@@ -58,7 +57,7 @@ runs:
       run: |
         # semantic-release will exit 0 regardless of whether a release was made
         # The successCmd in .releaserc only runs if a release is actually created
-        bunx semantic-release --config ./.config/.releaserc.json || true
+        bun semantic-release || true
 
         # Check if a release was actually made by looking for our success marker
         if [ -f "release_status.txt" ] && grep -q "released=true" release_status.txt; then
