@@ -5,7 +5,14 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
 	plugins: [tsconfigPaths(), react()],
 	test: {
-		exclude: ["node_modules/**", ".next/**", "tests/**", "**/*.spec.{ts,tsx}"],
+		exclude: [
+			"node_modules/**",
+			".next/**",
+			"tests/**",
+			"**/*.spec.{ts,tsx}",
+			"src/stories/**",
+			"src/**/*.stories.{js,ts,jsx,tsx}",
+		],
 		environment: "jsdom",
 		coverage: {
 			enabled: true,
@@ -18,6 +25,8 @@ export default defineConfig({
 				"src/**/__tests__/**",
 				"src/test/**",
 				"node_modules/**",
+				"src/stories/**",
+				"src/**/*.stories.{js,ts,jsx,tsx}",
 			],
 		},
 		clearMocks: true,

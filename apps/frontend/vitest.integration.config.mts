@@ -7,5 +7,6 @@ export default defineConfig({
 	test: {
 		environment: "jsdom",
 		include: ["src/**/*.spec.{ts,tsx}"],
+		exclude: ["src/**/*.stories.{js,ts,jsx,tsx}"],
 	},
 });
