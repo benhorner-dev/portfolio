@@ -21,6 +21,11 @@ echo "📁 Copying documentation files..."
 # Copy root docs directory
 if [ -d "docs" ]; then
     cp -r "docs" "$WIKI_DIR/"
+
+    if [ -f "$WIKI_DIR/docs/code-docs/Home.md" ]; then
+        mv "$WIKI_DIR/docs/code-docs/Home.md" "$WIKI_DIR/docs/code-docs/CodeDocsHome.md"
+        echo "✓ Renamed code-docs Home to CodeDocsHome"
+    fi
     echo "✓ Copied root documentation"
 fi
 
@@ -60,7 +65,7 @@ if [ -d "docs" ]; then
 
     # Handle code-docs specially - link to apps page
     if [ -d "docs/code-docs" ]; then
-        echo "- [Code Documentation](code-docs/home)" >> "$WIKI_DIR/_Sidebar.md"
+        echo "- [Code Documentation](CodeDocsHome)" >> "$WIKI_DIR/_Sidebar.md"
     fi
 
     # Find all other markdown files in docs (excluding code-docs subdirectory)
