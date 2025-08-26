@@ -34,10 +34,10 @@ while IFS= read -r commit; do
   if [ -z "$commit" ]; then
     continue
   fi
-  
+
   echo "Validating: $commit"
-  
-  if ! echo "$commit" | bunx commitlint; then
+
+  if ! echo "$commit" | bunx commitlint --config ./.config/commitlint.config.js; then
     echo "❌ Commit validation failed: '$commit'"
     FAILED=true
   else
