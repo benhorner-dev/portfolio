@@ -57,3 +57,12 @@ next-env.d.ts
 
 # Dev
 volumes
+
+
+
+
+# StoryBook
+**/build-storybook.log
+**/stories
+*storybook.log
+storybook-static
