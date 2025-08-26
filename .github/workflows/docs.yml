@@ -3,9 +3,7 @@ name: Sync Documentation to Wiki
 on:
   push:
     branches:
-      # TODO: change below to main to run
-      - NEVER
-
+      - main
 jobs:
   sync-wiki:
     runs-on: ubuntu-latest
@@ -32,7 +30,6 @@ jobs:
           repository: ${{ github.repository }}.wiki
           path: wiki
           token: ${{ secrets.WIKI_TOKEN }}
-
 
       - name: Run wiki sync script
         run: ./tools/docs/sync-wiki.sh

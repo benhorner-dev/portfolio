@@ -2,8 +2,7 @@ name: Release
 on:
   push:
     branches:
-      # TODO: change below to main to run
-      - NEVER
+      - main
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 concurrency:
