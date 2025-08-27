@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - feature/smoke-tests
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 concurrency:
@@ -15,21 +14,21 @@ permissions:
   issues: write
   pull-requests: write
 jobs:
-  # prebuild:
-  #   name: Prebuild setup and semantic release
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     released: ${{ steps.tag.outputs.released }}
-  #     version: ${{ steps.tag.outputs.version }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - name: Tag semantic release
-  #       id: tag
-  #       uses: ./.github/actions/tag
+  prebuild:
+    name: Prebuild setup and semantic release
+    runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.tag.outputs.released }}
+      version: ${{ steps.tag.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Tag semantic release
+        id: tag
+        uses: ./.github/actions/tag
 
   deploy-frontend-staging:
-    # needs: [prebuild]
+    needs: [prebuild]
     name: Deploy frontend to staging
     runs-on: ubuntu-latest
     outputs:
@@ -82,7 +81,6 @@ jobs:
 
           cd apps/frontend
           bunx playwright test tests/smoke.spec.ts
-          # Add your actual smoke test commands here
           echo "✅ Smoke tests passed"
 
   deploy-frontend-production:
