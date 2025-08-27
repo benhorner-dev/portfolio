@@ -190,6 +190,8 @@ function extractSentryData(
 	webhookData: SentryWebhookPayload,
 	resource: string | null,
 ): SentryAlert | null {
+	console.log(webhookData);
+	console.log(resource);
 	if (resource !== "issue" && resource !== "error") {
 		return null;
 	}
