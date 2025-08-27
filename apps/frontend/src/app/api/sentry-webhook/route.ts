@@ -52,21 +52,46 @@ interface SlackMessage {
 	icon_emoji?: string;
 }
 
+interface SentryData {
+	id: string;
+	project?: string | { name: string };
+	culprit?: string;
+	title?: string;
+	message?: string;
+	permalink?: string;
+	web_url?: string;
+	level?: string;
+	firstSeen?: string;
+	lastSeen?: string;
+	tags?: Record<string, string>;
+}
+
+interface SentryWebhookPayload {
+	action: string;
+	data: {
+		issue?: SentryData;
+		error?: SentryData;
+	};
+}
+
 export async function POST(request: NextRequest) {
 	try {
-		const authHeader = request.headers.get("authorization");
-		const expectedToken = process.env.SENTRY_WEBHOOK_SECRET;
+		// Get the raw body for signature verification
+		const body = await request.text();
+		const signature = request.headers.get("sentry-hook-signature");
+		const clientSecret = process.env.SENTRY_CLIENT_SECRET;
 
-		if (!expectedToken) {
-			console.error("SENTRY_WEBHOOK_SECRET not configured");
+		if (!clientSecret) {
+			console.error("SENTRY_CLIENT_SECRET not configured");
 			return NextResponse.json(
 				{ error: "Server configuration error" },
 				{ status: 500 },
 			);
 		}
 
-		if (!authHeader || authHeader !== `Bearer ${expectedToken}`) {
-			console.error("Unauthorized webhook request");
+		// Verify Sentry signature
+		if (signature && !(await verifySignature(body, signature, clientSecret))) {
+			console.error("Invalid Sentry signature");
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
@@ -79,9 +104,19 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		const sentryData: SentryAlert = await request.json();
+		// Parse the webhook payload
+		const webhookData: SentryWebhookPayload = JSON.parse(body);
 
-		const slackMessage = formatSlackMessage(sentryData);
+		// Extract issue/error data based on webhook resource type
+		const resource = request.headers.get("sentry-hook-resource");
+		const sentryData = extractSentryData(webhookData, resource);
+
+		if (!sentryData) {
+			console.log("Webhook received but no actionable data found");
+			return NextResponse.json({ success: true, message: "No action needed" });
+		}
+
+		const slackMessage = formatSlackMessage(sentryData, webhookData.action);
 
 		const slackResponse = await fetch(slackWebhookUrl, {
 			method: "POST",
@@ -119,9 +154,84 @@ export async function GET() {
 	});
 }
 
-function formatSlackMessage(data: SentryAlert): SlackMessage {
+async function verifySignature(
+	body: string,
+	signature: string,
+	secret: string,
+): Promise<boolean> {
+	try {
+		// Create HMAC with SHA256
+		const encoder = new TextEncoder();
+		const key = encoder.encode(secret);
+		const data = encoder.encode(body);
+
+		const cryptoKey = await crypto.subtle.importKey(
+			"raw",
+			key,
+			{ name: "HMAC", hash: "SHA-256" },
+			false,
+			["sign"],
+		);
+
+		const signatureBuffer = await crypto.subtle.sign("HMAC", cryptoKey, data);
+
+		const computedSignature = Array.from(new Uint8Array(signatureBuffer))
+			.map((b) => b.toString(16).padStart(2, "0"))
+			.join("");
+
+		return computedSignature === signature;
+	} catch (error) {
+		console.error("Signature verification error:", error);
+		return false;
+	}
+}
+
+function extractSentryData(
+	webhookData: SentryWebhookPayload,
+	resource: string | null,
+): SentryAlert | null {
+	if (resource !== "issue" && resource !== "error") {
+		return null;
+	}
+
+	const data =
+		resource === "issue" ? webhookData.data.issue : webhookData.data.error;
+
+	if (!data) {
+		return null;
+	}
+
+	// Extract project name safely
+	let projectName = "Unknown Project";
+	if (data.project) {
+		if (typeof data.project === "string") {
+			projectName = data.project;
+		} else if (typeof data.project === "object" && data.project.name) {
+			projectName = data.project.name;
+		}
+	}
+
+	return {
+		id: data.id,
+		project: projectName,
+		culprit: data.culprit,
+		message: data.title || data.message || "No message",
+		url: data.permalink || data.web_url,
+		level: data.level || "error",
+		event: {
+			event_id: data.id,
+			timestamp: data.firstSeen || data.lastSeen || new Date().toISOString(),
+			environment: data.tags?.environment || "unknown",
+			tags: data.tags || {},
+			user: data.tags?.user ? { id: data.tags.user } : undefined,
+		},
+	};
+}
+
+function formatSlackMessage(data: SentryAlert, action?: string): SlackMessage {
 	const severity = getSeverityEmoji(data.level);
 	const environment = data.event.environment || "unknown";
+	const actionText = action ? ` (${action})` : "";
 
 	const slackMessage: SlackMessage = {
 		blocks: [
@@ -129,7 +239,7 @@ function formatSlackMessage(data: SentryAlert): SlackMessage {
 				type: "header",
 				text: {
 					type: "plain_text",
-					text: `${severity} Sentry Alert - ${data.project}`,
+					text: `${severity} Sentry Alert - ${data.project}${actionText}`,
 					emoji: true,
 				},
 			},
@@ -169,8 +279,8 @@ function formatSlackMessage(data: SentryAlert): SlackMessage {
 		return slackMessage;
 	}
 
-	// Get the fields section (second block)
-	const fieldsBlock = slackMessage.blocks[1];
+	// Get the fields section (second block) using optional chaining
+	const fieldsBlock = slackMessage.blocks?.[1];
 	if (fieldsBlock?.fields && Array.isArray(fieldsBlock.fields)) {
 		// Add culprit if available
 		if (data.culprit) {
