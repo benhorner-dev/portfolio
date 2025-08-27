@@ -14,6 +14,11 @@ export default defineConfig({
 	use: {
 		baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000",
 		trace: "on-first-retry",
+		extraHTTPHeaders: process.env.PLAYWRIGHT_VERCEL_TOKEN
+			? {
+					"x-vercel-protection-bypass": process.env.PLAYWRIGHT_VERCEL_TOKEN,
+				}
+			: {},
 	},
 
 	projects: [
