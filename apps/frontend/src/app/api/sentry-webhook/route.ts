@@ -71,6 +71,26 @@ interface SentryWebhookPayload {
 	data: {
 		issue?: SentryData;
 		error?: SentryData;
+		event?: {
+			event_id: string;
+			project: number;
+			message: string;
+			title?: string;
+			level: string;
+			culprit?: string;
+			datetime: string;
+			url?: string;
+			web_url?: string;
+			issue_url?: string;
+			issue_id?: string;
+			tags?: Array<[string, string]>;
+			user?: {
+				id: string;
+				email?: string;
+				ip_address?: string;
+			};
+		};
+		triggered_rule?: string;
 	};
 }
 
@@ -190,44 +210,77 @@ function extractSentryData(
 	webhookData: SentryWebhookPayload,
 	resource: string | null,
 ): SentryAlert | null {
-	console.log(webhookData);
-	console.log(resource);
-	if (resource !== "issue" && resource !== "error") {
-		return null;
-	}
+	// Handle event alerts (most common)
+	if (resource === "event_alert" && webhookData.data.event) {
+		const event = webhookData.data.event;
 
-	const data =
-		resource === "issue" ? webhookData.data.issue : webhookData.data.error;
-
-	if (!data) {
-		return null;
-	}
-
-	// Extract project name safely
-	let projectName = "Unknown Project";
-	if (data.project) {
-		if (typeof data.project === "string") {
-			projectName = data.project;
-		} else if (typeof data.project === "object" && data.project.name) {
-			projectName = data.project.name;
+		// Convert tags array to object
+		const tagsObj: Record<string, string> = {};
+		if (event.tags) {
+			event.tags.forEach(([key, value]) => {
+				tagsObj[key] = value;
+			});
 		}
+
+		return {
+			id: event.event_id,
+			project: event.project.toString(),
+			culprit: event.culprit,
+			message: event.title || event.message || "No message",
+			url: event.web_url || event.url,
+			level: event.level,
+			event: {
+				event_id: event.event_id,
+				timestamp: event.datetime,
+				environment: tagsObj.environment || "unknown",
+				tags: tagsObj,
+				user: event.user
+					? {
+							id: event.user.id,
+							email: event.user.email,
+						}
+					: undefined,
+			},
+		};
 	}
 
-	return {
-		id: data.id,
-		project: projectName,
-		culprit: data.culprit,
-		message: data.title || data.message || "No message",
-		url: data.permalink || data.web_url,
-		level: data.level || "error",
-		event: {
-			event_id: data.id,
-			timestamp: data.firstSeen || data.lastSeen || new Date().toISOString(),
-			environment: data.tags?.environment || "unknown",
-			tags: data.tags || {},
-			user: data.tags?.user ? { id: data.tags.user } : undefined,
-		},
-	};
+	// Handle issue/error webhooks (fallback)
+	if (resource === "issue" || resource === "error") {
+		const data =
+			resource === "issue" ? webhookData.data.issue : webhookData.data.error;
+
+		if (!data) {
+			return null;
+		}
+
+		// Extract project name safely
+		let projectName = "Unknown Project";
+		if (data.project) {
+			if (typeof data.project === "string") {
+				projectName = data.project;
+			} else if (typeof data.project === "object" && data.project.name) {
+				projectName = data.project.name;
+			}
+		}
+
+		return {
+			id: data.id,
+			project: projectName,
+			culprit: data.culprit,
+			message: data.title || data.message || "No message",
+			url: data.permalink || data.web_url,
+			level: data.level || "error",
+			event: {
+				event_id: data.id,
+				timestamp: data.firstSeen || data.lastSeen || new Date().toISOString(),
+				environment: data.tags?.environment || "unknown",
+				tags: data.tags || {},
+				user: data.tags?.user ? { id: data.tags.user } : undefined,
+			},
+		};
+	}
+
+	return null;
 }
 
 function formatSlackMessage(data: SentryAlert, action?: string): SlackMessage {
