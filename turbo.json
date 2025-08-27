@@ -6,8 +6,7 @@
 			"outputs": [".next/**", "!.next/cache/**"],
 			"env": [
 				"SENTRY_CLIENT_SECRET",
-				"SLACK_STAGING_WEBHOOK_URL",
-				"SLACK_PRODUCTION_WEBHOOK_URL",
+				"SLACK_WEBHOOK_URL",
 				"NEXT_PUBLIC_SENTRY_DSN",
 				"SENTRY_AUTH_TOKEN",
 				"VERCEL_ENV",

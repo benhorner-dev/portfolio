@@ -337,10 +337,8 @@ export const sendSlackMessage = async (
 export const getSlackWebhookUrl = () => {
 	switch (process.env.VERCEL_ENV) {
 		case Environment.PRODUCTION:
-			return process.env.SLACK_PRODUCTION_WEBHOOK_URL;
-
 		case Environment.PREVIEW:
-			return process.env.SLACK_STAGING_WEBHOOK_URL;
+			return process.env.SLACK_WEBHOOK_URL;
 		default:
 			return undefined;
 	}

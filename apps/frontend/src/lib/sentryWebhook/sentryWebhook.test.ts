@@ -18,10 +18,8 @@ import {
 
 const mockEnv = {
 	SENTRY_CLIENT_SECRET: "test-secret",
-	SLACK_WEBHOOK_URL: "https://hooks.slack.com/test",
+	SLACK_WEBHOOK_URL: "https://hooks.slack.com/prod",
 	VERCEL_ENV: "development",
-	SLACK_PRODUCTION_WEBHOOK_URL: "https://hooks.slack.com/prod",
-	SLACK_STAGING_WEBHOOK_URL: "https://hooks.slack.com/staging",
 };
 
 describe("custom errors", () => {
@@ -604,8 +602,7 @@ describe("getSeverityEmoji default path via formatSlackMessage", () => {
 describe("getSlackWebhookUrl", () => {
 	beforeEach(() => {
 		vi.stubEnv("VERCEL_ENV", "development");
-		vi.stubEnv("SLACK_PRODUCTION_WEBHOOK_URL", "https://hooks.slack.com/prod");
-		vi.stubEnv("SLACK_STAGING_WEBHOOK_URL", "https://hooks.slack.com/staging");
+		vi.stubEnv("SLACK_WEBHOOK_URL", "https://hooks.slack.com/prod");
 	});
 
 	afterEach(() => {
@@ -616,12 +613,6 @@ describe("getSlackWebhookUrl", () => {
 		vi.stubEnv("VERCEL_ENV", "production");
 		const url = getSlackWebhookUrl();
 		expect(url).toBe("https://hooks.slack.com/prod");
-	});
-
-	it("returns staging webhook URL for preview environment", () => {
-		vi.stubEnv("VERCEL_ENV", "preview");
-		const url = getSlackWebhookUrl();
-		expect(url).toBe("https://hooks.slack.com/staging");
 	});
 
 	it("returns undefined for other environments", () => {
