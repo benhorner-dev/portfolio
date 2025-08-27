@@ -13,7 +13,6 @@ const dirname =
 		? __dirname
 		: path.dirname(fileURLToPath(import.meta.url));
 
-// More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
 	plugins: [tsconfigPaths(), react()],
 	test: {
@@ -31,6 +30,8 @@ export default defineConfig({
 				"src/**/__tests__/**",
 				"src/test/**",
 				"src/**/*.stories.{js,ts,jsx,tsx}",
+				"src/instrumentation-client.ts",
+				"src/instrumentation.ts",
 			],
 			thresholds: {
 				lines: 100,

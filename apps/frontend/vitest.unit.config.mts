@@ -14,6 +14,7 @@ export default defineConfig({
 			"src/**/*.stories.{js,ts,jsx,tsx}",
 		],
 		environment: "jsdom",
+		setupFiles: ["./src/test/setup.ts"],
 		coverage: {
 			enabled: true,
 			provider: "v8",
@@ -27,6 +28,8 @@ export default defineConfig({
 				"node_modules/**",
 				"src/stories/**",
 				"src/**/*.stories.{js,ts,jsx,tsx}",
+				"src/instrumentation-client.ts",
+				"src/instrumentation.ts",
 			],
 		},
 		clearMocks: true,
