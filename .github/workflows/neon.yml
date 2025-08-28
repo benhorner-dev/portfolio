@@ -181,8 +181,8 @@ jobs:
             exit 1
           fi
 
-          # Validate the URL format
-          if [[ ! "$DB_URL" =~ ^postgres:// ]]; then
+          # Validate the URL format (GitHub Actions masks secrets, so we check for common patterns)
+          if [[ ! "$DB_URL" =~ (^postgres://|^postgresql://|\*\*\*.*neon\.tech) ]]; then
             echo "❌ Invalid database URL format: '$DB_URL'"
             exit 1
           fi
@@ -190,6 +190,7 @@ jobs:
           echo "DATABASE_URL=$DB_URL" >> $GITHUB_OUTPUT
           echo "✅ Found database URL for branch: '$NEON_BRANCH_NAME'"
           echo "✅ Branch ID: $BRANCH_ID"
+          echo "✅ Connection URL retrieved successfully (masked by GitHub Actions)"
       - name: Run Migrations on Preview Branch
         run: |
           bun install
