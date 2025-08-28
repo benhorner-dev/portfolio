@@ -1,0 +1,48 @@
+name: Create Neon Branch
+
+on:
+  workflow_call:
+    inputs:
+      branch_name:
+        required: true
+        type: string
+        description: "Name of the Neon branch to create"
+    outputs:
+      db_url:
+        description: "Database URL for the created branch"
+        value: ${{ jobs.create_branch.outputs.db_url }}
+      db_url_with_pooler:
+        description: "Database URL with pooler for the created branch"
+        value: ${{ jobs.create_branch.outputs.db_url_with_pooler }}
+
+jobs:
+  create_branch:
+    name: Create Neon Branch
+    runs-on: ubuntu-latest
+    outputs:
+      db_url: ${{ steps.create_neon_branch.outputs.db_url }}
+      db_url_with_pooler: ${{ steps.create_neon_branch.outputs.db_url_with_pooler }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Create Neon Branch
+        id: create_neon_branch
+        uses: neondatabase/create-branch-action@v5
+        with:
+          username: ${{ secrets.NEON_USERNAME }}
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch_name: ${{ inputs.branch_name }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+
+      - name: Run Migrations
+        run: |
+          bun install
+          bunx turbo migrate
+        env:
+          DATABASE_URL: "${{ steps.create_neon_branch.outputs.db_url_with_pooler }}"

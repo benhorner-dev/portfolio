@@ -1,0 +1,74 @@
+name: Manage Preview Branch for Pull Request
+on:
+  deployment_status:
+  pull_request:
+    types:
+      - closed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+  setup:
+    name: Setup
+    outputs:
+      branch: ${{ steps.extract_info.outputs.branch }}
+      pr_number: ${{ steps.extract_info.outputs.pr_number }}
+      neon_branch_name: ${{ steps.extract_info.outputs.neon_branch_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Debug Deployment Event
+        if: github.event_name == 'deployment_status'
+        run: |
+          echo "🔍 Full deployment event payload:"
+          echo '${{ toJson(github.event) }}'
+
+      - name: Extract PR and Branch Info
+        id: extract_info
+        run: |
+          ./tools/ci/extract-pr-info.sh \
+            "${{ github.event_name }}" \
+            "${{ secrets.GITHUB_TOKEN }}" \
+            "${{ github.repository }}" \
+            "${{ github.repository_owner }}" \
+            "${{ github.event.deployment.ref }}" \
+            "${{ github.event.deployment.environment }}" \
+            '${{ toJson(github.event.deployment.payload) }}' \
+            "${{ github.event.deployment.description }}" \
+            "${{ github.event.number }}" \
+            "${{ github.head_ref }}"
+
+  migrate_preview_branch:
+    name: Run Migrations on Preview Branch
+    runs-on: ubuntu-latest
+    needs: setup
+    if: |
+      github.event_name == 'deployment_status' &&
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment.environment == 'Preview'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Run Migrations on Preview Branch
+        run: |
+          echo "🔍 Debug info:"
+          echo "  PR Number: ${{ needs.setup.outputs.pr_number }}"
+          echo "  Branch: ${{ needs.setup.outputs.branch }}"
+          ./tools/ci/migrate-neon-branch.sh \
+            "${{ needs.setup.outputs.neon_branch_name }}" \
+            "${{ secrets.NEON_API_KEY }}" \
+            "${{ vars.NEON_PROJECT_ID }}"
+
+  delete_preview_branch:
+    name: Delete Preview Neon Branch
+    uses: ./.github/workflows/neon-delete-branch.yml
+    needs: setup
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    with:
+      branch_name: "${{ needs.setup.outputs.neon_branch_name }}"
+    secrets: inherit

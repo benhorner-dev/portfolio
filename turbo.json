@@ -27,11 +27,14 @@
 			"persistent": true,
 			"cache": false
 		},
-		"test": {},
+		"test": { "env": ["DATABASE_URL"] },
 		"test:unit": {},
-		"test:integration": {},
+		"test:integration": { "env": ["DATABASE_URL"] },
 		"test:e2e": {},
 		"lint": {},
-		"format": {}
+		"format": {},
+		"migrate": {
+			"env": ["DATABASE_URL"]
+		}
 	}
 }

@@ -1,0 +1,21 @@
+name: Delete Neon Branch
+
+on:
+  workflow_call:
+    inputs:
+      branch_name:
+        required: true
+        type: string
+        description: "Name of the Neon branch to delete"
+
+jobs:
+  delete_branch:
+    name: Delete Neon Branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete Neon Branch
+        uses: neondatabase/delete-branch-action@v3
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch: ${{ inputs.branch_name }}
+          api_key: ${{ secrets.NEON_API_KEY }}
