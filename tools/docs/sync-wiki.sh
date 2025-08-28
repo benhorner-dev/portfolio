@@ -219,7 +219,7 @@ if [ -d "$WIKI_DIR/docs" ]; then
     echo "" >> "$WIKI_DIR/_Sidebar.md"
 
     if [ -d "$WIKI_DIR/docs/code-docs" ]; then
-        echo "- [Code Documentation](CodeDocsHome)" >> "$WIKI_DIR/_Sidebar.md"
+        echo "- [Code Documentation](packages)" >> "$WIKI_DIR/_Sidebar.md"
     fi
 
     find "$WIKI_DIR/docs" -name "*.md" -type f -not -path "$WIKI_DIR/docs/code-docs/*" | sort | while read -r file; do
