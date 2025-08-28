@@ -94,14 +94,14 @@ jobs:
           bunx playwright test tests/smoke.spec.ts
           echo "✅ Smoke tests passed"
 
-  # delete-staging-db:
-  #   name: Delete staging database branch
-  #   uses: ./.github/workflows/neon-delete-branch.yml
-  #   needs: [smoke-tests]
-  #   if: always() # Always clean up, even if tests fail
-  #   with:
-  #     branch_name: "staging"
-  #   secrets: inherit
+  delete-staging-db:
+    name: Delete staging database branch
+    uses: ./.github/workflows/neon-delete-branch.yml
+    needs: [smoke-tests]
+    if: always() # Always clean up, even if tests fail
+    with:
+      branch_name: "staging"
+    secrets: inherit
 
   # migrate:
   #   needs: [smoke-tests]
