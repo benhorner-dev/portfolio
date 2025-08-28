@@ -27,7 +27,7 @@
 			"persistent": true,
 			"cache": false
 		},
-		"test": {},
+		"test": { "env": ["DATABASE_URL"] },
 		"test:unit": {},
 		"test:integration": { "env": ["DATABASE_URL"] },
 		"test:e2e": {},
