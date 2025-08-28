@@ -34,6 +34,26 @@ print_debug() {
     echo -e "${BLUE}[DEBUG]${NC} $1"
 }
 
+# Function to show usage
+show_usage() {
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  -d, --directory DIR    Test all TypeScript/JavaScript files in the specified directory"
+    echo "  -f, --files FILE...    Test specific files (space-separated)"
+    echo "  -h, --help            Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0                           # Use git diff (original behavior)"
+    echo "  $0 -d src/components         # Test all files in src/components"
+    echo "  $0 -d .                      # Test all files in current directory"
+    echo "  $0 -f file1.ts file2.js      # Test specific files"
+    echo ""
+    echo "Environment Variables:"
+    echo "  OPENAI_API_KEY               Required for TSDoc generation"
+    echo "  TYPEDOC_CONFIG               Path to TypeDoc config (default: ./.config/typedoc.json)"
+}
+
 # Function to check if file exists
 file_exists() {
     [ -f "$1" ]
@@ -52,13 +72,61 @@ ensure_directory_exists() {
     fi
 }
 
+# Function to get files from directory
+get_files_from_directory() {
+    local target_dir="$1"
+
+    if ! dir_exists "$target_dir"; then
+        print_error "Directory not found: $target_dir"
+        return 1
+    fi
+
+    find "$target_dir" -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) \
+        ! -path "*/node_modules/*" \
+        ! -path "*/dist/*" \
+        ! -path "*/build/*" \
+        ! -path "*/coverage/*" \
+        ! -path "*/.next/*" \
+        ! -path "*/out/*"
+}
+
+# Function to get changed files from git
+get_changed_files_from_git() {
+    local changed_files=""
+
+    if [ -n "${GITHUB_SHA:-}" ]; then
+        # In GitHub Actions - get files changed in this push
+        print_info "📊 Running in GitHub Actions environment"
+
+        # Try to get the diff from the push
+        if [ -n "${GITHUB_EVENT_BEFORE:-}" ] && [ "${GITHUB_EVENT_BEFORE}" != "0000000000000000000000000000000000000000" ]; then
+            changed_files=$(git diff --name-only "${GITHUB_EVENT_BEFORE}..${GITHUB_SHA}" 2>/dev/null || echo "")
+        else
+            # Fallback to comparing with previous commit
+            changed_files=$(git diff --name-only HEAD^ HEAD 2>/dev/null || echo "")
+        fi
+    else
+        # Local development - compare with main/master
+        print_info "💻 Running in local environment"
+        changed_files=$(git diff --name-only origin/main...HEAD 2>/dev/null || \
+                        git diff --name-only origin/master...HEAD 2>/dev/null || \
+                        git diff --name-only main...HEAD 2>/dev/null || \
+                        echo "")
+    fi
+
+    # Filter for TypeScript/JavaScript files
+    if [ -n "$changed_files" ]; then
+        echo "$changed_files" | grep -E '\.(ts|tsx|js|jsx)$' | grep -v node_modules | grep -v dist | grep -v build | grep -v coverage || true
+    fi
+}
+
 # Function to generate docstrings using OpenAI API
 generate_docstrings() {
     local file_content="$1"
     local error_message="$2"
     local file_path="$3"
 
-    print_info "🤖 Generating TSDoc for: $file_path"
+    print_info "🤖 Generating TSDoc for: $file_path" >&2
 
     local prompt="You are a TypeScript documentation expert. Add comprehensive TypeDoc documentation to this code.
 
@@ -130,7 +198,7 @@ $file_content"
     local timeout=$((30 + file_lines / 10))
     [ "$timeout" -gt 120 ] && timeout=120  # Cap at 2 minutes
 
-    print_debug "Using timeout of ${timeout}s for file with $file_lines lines"
+    print_debug "Using timeout of ${timeout}s for file with $file_lines lines" >&2
 
     # Make the API call
     local curl_exit_code
@@ -274,7 +342,6 @@ process_file_with_tsdoc() {
 
         # Call generate_docstrings and capture both stdout and stderr
         if doc_content=$(generate_docstrings "$original_content" "$error_message" "$file_path" 2>"$temp_error_file"); then
-            echo "$doc_content"
             echo "$doc_content" > "$file_path"
 
             # Try to validate the syntax
@@ -330,7 +397,41 @@ cleanup() {
 
 # Main function
 main() {
-    print_info "🚀 Starting TSDoc enhancement for changed files..."
+    local mode="git"  # Default mode
+    local target_directory=""
+    local specific_files=()
+
+    # Parse command line arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -d|--directory)
+                mode="directory"
+                target_directory="$2"
+                shift 2
+                ;;
+            -f|--files)
+                mode="files"
+                shift
+                # Collect all remaining arguments as files
+                while [[ $# -gt 0 ]] && [[ $1 != -* ]]; do
+                    specific_files+=("$1")
+                    shift
+                done
+                ;;
+            -h|--help)
+                show_usage
+                exit 0
+                ;;
+            *)
+                print_error "Unknown option: $1"
+                show_usage
+                exit 1
+                ;;
+        esac
+    done
+
+    print_info "🚀 Starting TSDoc enhancement..."
+    print_info "   Mode: $mode"
 
     # Check for required dependencies
     command -v jq >/dev/null 2>&1 || { print_error "jq is required but not installed."; exit 1; }
@@ -346,48 +447,49 @@ main() {
     # Create temp backup directory
     ensure_directory_exists "$TEMP_BACKUP_DIR"
 
-    # Get changed files from git
-    local changed_files=""
-
-    if [ -n "${GITHUB_SHA:-}" ]; then
-        # In GitHub Actions - get files changed in this push
-        print_info "📊 Running in GitHub Actions environment"
-
-        # Try to get the diff from the push
-        if [ -n "${GITHUB_EVENT_BEFORE:-}" ] && [ "${GITHUB_EVENT_BEFORE}" != "0000000000000000000000000000000000000000" ]; then
-            changed_files=$(git diff --name-only "${GITHUB_EVENT_BEFORE}..${GITHUB_SHA}" 2>/dev/null || echo "")
-        else
-            # Fallback to comparing with previous commit
-            changed_files=$(git diff --name-only HEAD^ HEAD 2>/dev/null || echo "")
-        fi
-    else
-        # Local development - compare with main/master
-        print_info "💻 Running in local environment"
-        changed_files=$(git diff --name-only origin/main...HEAD 2>/dev/null || \
-                        git diff --name-only origin/master...HEAD 2>/dev/null || \
-                        git diff --name-only main...HEAD 2>/dev/null || \
-                        echo "")
-    fi
-
-    # Filter for TypeScript/JavaScript files
+    # Get list of files to process based on mode
     local ts_files=""
-    if [ -n "$changed_files" ]; then
-        ts_files=$(echo "$changed_files" | grep -E '\.(ts|tsx|js|jsx)$' | grep -v node_modules | grep -v dist | grep -v build | grep -v coverage || true)
-    fi
+
+    case $mode in
+        "directory")
+            print_info "📁 Processing directory: $target_directory"
+            ts_files=$(get_files_from_directory "$target_directory")
+            ;;
+        "files")
+            print_info "📋 Processing specific files"
+            # Validate that all specified files exist and are TS/JS files
+            for file in "${specific_files[@]}"; do
+                if ! file_exists "$file"; then
+                    print_error "File not found: $file"
+                    exit 1
+                fi
+                if ! echo "$file" | grep -q -E '\.(ts|tsx|js|jsx)$'; then
+                    print_warning "Not a TypeScript/JavaScript file: $file"
+                fi
+            done
+            # Convert array to newline-separated string
+            printf '%s\n' "${specific_files[@]}" | grep -E '\.(ts|tsx|js|jsx)$' || true
+            ts_files=$(printf '%s\n' "${specific_files[@]}" | grep -E '\.(ts|tsx|js|jsx)$' || true)
+            ;;
+        "git")
+            print_info "🔍 Using git diff to find changed files"
+            ts_files=$(get_changed_files_from_git)
+            ;;
+    esac
 
     local enhanced_count=0
     local failed_count=0
 
     if [ -z "$ts_files" ]; then
-        print_warning "📭 No TypeScript/JavaScript files changed in this commit"
+        print_warning "📭 No TypeScript/JavaScript files to process"
         print_info "Skipping TSDoc enhancement..."
     else
-        print_info "📝 Found changed TypeScript/JavaScript files:"
+        print_info "📝 Found TypeScript/JavaScript files to process:"
         echo "$ts_files" | while IFS= read -r file; do
             [ -n "$file" ] && echo "  - $file"
         done
 
-        # Process each changed file
+        # Process each file
         echo "$ts_files" | while IFS= read -r file; do
             if [ -n "$file" ] && file_exists "$file"; then
                 if process_file_with_tsdoc "$file"; then
