@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - feature/port-43-setup-neon-database
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 concurrency:
@@ -15,29 +14,29 @@ permissions:
   issues: write
   pull-requests: write
 jobs:
-  # prebuild:
-  #   name: Prebuild setup and semantic release
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     released: ${{ steps.tag.outputs.released }}
-  #     version: ${{ steps.tag.outputs.version }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - name: Tag semantic release
-  #       id: tag
-  #       uses: ./.github/actions/tag
+  prebuild:
+    name: Prebuild setup and semantic release
+    runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.tag.outputs.released }}
+      version: ${{ steps.tag.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Tag semantic release
+        id: tag
+        uses: ./.github/actions/tag
 
   create-staging-db:
     name: Create staging database branch
     uses: ./.github/workflows/neon-create-branch.yml
-    # needs: [prebuild]
+    needs: [prebuild]
     with:
       branch_name: "staging"
     secrets: inherit
 
   deploy-frontend-staging:
-    needs: [create-staging-db]
+    needs: [prebuild, create-staging-db]
     name: Deploy frontend to staging
     runs-on: ubuntu-latest
     outputs:
@@ -103,43 +102,43 @@ jobs:
       branch_name: "staging"
     secrets: inherit
 
-  # migrate:
-  #   needs: [smoke-tests]
-  #   name: Run database migrations on production
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     DATABASE_URL: ${{ secrets.DATABASE_URL }} # Production database
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - name: Setup Bun
-  #       uses: oven-sh/setup-bun@v2
-  #       with:
-  #         bun-version: latest
-  #     - name: Run migrations on production database
-  #       run: |
-  #         echo "Running migrations on production database"
-  #         bun install
-  #         bunx turbo migrate
-  #         echo "✅ Production database migrations completed"
+  migrate:
+    needs: [smoke-tests]
+    name: Run database migrations on production
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }} # Production database
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Run migrations on production database
+        run: |
+          echo "Running migrations on production database"
+          bun install
+          bunx turbo migrate
+          echo "✅ Production database migrations completed"
 
-  # deploy-frontend-production:
-  #   name: Deploy frontend to production
-  #   runs-on: ubuntu-latest
-  #   needs: [migrate]
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - name: Setup Bun
-  #       uses: oven-sh/setup-bun@v2
-  #       with:
-  #         bun-version: latest
-  #     - name: Install Vercel CLI
-  #       run: bun i -g vercel
-  #     - name: Deploy to Vercel production
-  #       run: |
-  #         # Production deployment uses environment variables from Vercel dashboard
-  #         # No --env flags means it uses the DATABASE_URL set in Vercel's environment
-  #         PRODUCTION_URL=$(vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --yes)
-  #         echo "✅ Frontend deployed to production: ${PRODUCTION_URL}"
-  #         echo "✅ Using production database (from Vercel environment variables)"
+  deploy-frontend-production:
+    name: Deploy frontend to production
+    runs-on: ubuntu-latest
+    needs: [migrate]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install Vercel CLI
+        run: bun i -g vercel
+      - name: Deploy to Vercel production
+        run: |
+          # Production deployment uses environment variables from Vercel dashboard
+          # No --env flags means it uses the DATABASE_URL set in Vercel's environment
+          PRODUCTION_URL=$(vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --yes)
+          echo "✅ Frontend deployed to production: ${PRODUCTION_URL}"
+          echo "✅ Using production database (from Vercel environment variables)"
