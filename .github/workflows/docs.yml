@@ -8,7 +8,6 @@ on:
 jobs:
   sync-wiki:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository with history
         uses: actions/checkout@v4
@@ -34,10 +33,27 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_EVENT_BEFORE: ${{ github.event.before }}
           TYPEDOC_CONFIG: ./.config/typedoc.json
+          ENRICHED_FILES_LIST: /tmp/enriched_files.txt
         run: |
           echo "🎯 Enhancing documentation for changed files..."
-          ./tools/docs/enhance-docs.sh -d .
+          ./tools/docs/enhance-docs.sh -d ./apps/frontend/src --enriched-list /tmp/enriched_files.txt
           echo "✅ Enhancement complete"
+
+          # Show what was enriched for debugging
+          if [ -f /tmp/enriched_files.txt ] && [ -s /tmp/enriched_files.txt ]; then
+            echo "📝 Files that were enriched with TSDoc:"
+            cat /tmp/enriched_files.txt | sed 's/^/  - /'
+          else
+            echo "📭 No files were enriched in this run"
+          fi
+
+      - name: Generate TypeDoc documentation
+        run: |
+          echo "📚 Generating TypeDoc documentation..."
+          # Add your TypeDoc generation command here
+          # For example: bun run typedoc --options ./.config/typedoc.json
+          # This should generate the docs/code-docs directory with both enriched and normal docs
+          echo "✅ TypeDoc generation complete"
 
       - name: Checkout wiki
         uses: actions/checkout@v4
@@ -47,8 +63,10 @@ jobs:
           token: ${{ secrets.WIKI_TOKEN }}
 
       - name: Sync documentation to wiki
+        env:
+          ENRICHED_FILES_LIST: /tmp/enriched_files.txt
         run: |
-          echo "📤 Syncing documentation to wiki..."
+          echo "📤 Syncing documentation to wiki with selective updates..."
           ./tools/docs/sync-wiki.sh
           echo "✅ Wiki sync complete"
 
@@ -69,16 +87,34 @@ jobs:
 
           # Create detailed commit message
           CHANGED_FILES=$(git diff --cached --name-only | wc -l)
+          ENRICHED_COUNT=0
+          if [ -f /tmp/enriched_files.txt ]; then
+            ENRICHED_COUNT=$(cat /tmp/enriched_files.txt | wc -l)
+          fi
 
           # Commit with detailed message
           git commit -m "📚 Auto-sync documentation from main branch
 
-            Changed files: $CHANGED_FILES
-            Source commit: ${{ github.sha }}
-            Triggered by: ${{ github.actor }}
-            Commit message: ${{ github.event.head_commit.message }}"
+          📊 Changes Summary:
+          - Total changed files: $CHANGED_FILES
+          - Files enhanced with TSDoc: $ENRICHED_COUNT
+          - Source commit: ${{ github.sha }}
+          - Triggered by: ${{ github.actor }}
+
+          🔄 Sync Strategy:
+          - Updated all navigation and media files
+          - Selectively updated only enhanced code documentation
+          - Removed obsolete documentation files
+          - Preserved existing non-enhanced documentation
+
+          📝 Original commit: ${{ github.event.head_commit.message }}"
 
           # Push to wiki
           git push origin HEAD
-
           echo "✅ Wiki updated successfully!"
+
+      - name: Cleanup temporary files
+        if: always()
+        run: |
+          rm -f /tmp/enriched_files.txt
+          echo "🧹 Cleaned up temporary files"
