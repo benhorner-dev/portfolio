@@ -23,12 +23,22 @@ jobs:
 
       - name: Get PR number from deployment
         id: pr_info
-        if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success'
         run: |
-          if [[ "${{ github.event.deployment.ref }}" =~ preview/pr-([0-9]+)- ]]; then
-            echo "pr_number=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          echo "🔍 Event name: ${{ github.event_name }}"
+          echo "🔍 Event number: ${{ github.event.number }}"
+
+          if [[ "${{ github.event_name }}" == "deployment_status" ]]; then
+            echo "🔍 Deployment ref: ${{ github.event.deployment.ref }}"
+            if [[ "${{ github.event.deployment.ref }}" =~ preview/pr-([0-9]+)- ]]; then
+              echo "pr_number=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+              echo "✅ Extracted PR number from deployment ref: ${BASH_REMATCH[1]}"
+            else
+              echo "pr_number=${{ github.event.number }}" >> $GITHUB_OUTPUT
+              echo "✅ Using event number as PR number: ${{ github.event.number }}"
+            fi
           else
             echo "pr_number=${{ github.event.number }}" >> $GITHUB_OUTPUT
+            echo "✅ Using event number as PR number: ${{ github.event.number }}"
           fi
 
   migrate_preview_branch:
@@ -52,6 +62,11 @@ jobs:
         id: get_neon_branch
         run: |
           BRANCH_NAME="preview/pr-${{ needs.setup.outputs.pr_number }}-${{ needs.setup.outputs.branch }}"
+
+          echo "🔍 Debug info:"
+          echo "  PR Number: ${{ needs.setup.outputs.pr_number }}"
+          echo "  Branch: ${{ needs.setup.outputs.branch }}"
+          echo "  Constructed branch name: $BRANCH_NAME"
 
           # Get branch info from Neon API
           RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" \
