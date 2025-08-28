@@ -274,7 +274,7 @@ process_file_with_tsdoc() {
 
         # Call generate_docstrings and capture both stdout and stderr
         if doc_content=$(generate_docstrings "$original_content" "$error_message" "$file_path" 2>"$temp_error_file"); then
-            # Write the documented content
+            echo "$doc_content"
             echo "$doc_content" > "$file_path"
 
             # Try to validate the syntax
