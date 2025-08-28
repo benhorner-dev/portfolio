@@ -155,7 +155,8 @@ process_file_with_tsdoc() {
 
     # Skip if file already has substantial documentation
     local doc_lines
-    doc_lines=$(echo "$original_content" | grep -c "^\s*\*" || echo "0")
+    doc_lines=$(echo "$original_content" | grep -c "^\s*\*" || true)
+    doc_lines=${doc_lines:-0}
     if [ "$doc_lines" -gt 20 ]; then
         print_info "📝 File already well documented: $file_path"
         return 0
