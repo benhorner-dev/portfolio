@@ -7,7 +7,21 @@ ENHANCED_FILES_LIST="${1:-}"  # Pass enhanced files list as first argument
 
 echo "🧹 Cleaning wiki directory..."
 # Clean wiki but keep .git and preserve existing code-docs
-find "$WIKI_DIR" -mindepth 1 -not -path "$WIKI_DIR/.git*" -not -path "$WIKI_DIR/docs/code-docs*" -delete
+# First, remove files and empty directories, but preserve .git and docs/code-docs
+find "$WIKI_DIR" -mindepth 1 \
+    -not -path "$WIKI_DIR/.git*" \
+    -not -path "$WIKI_DIR/docs/code-docs*" \
+    -not -path "$WIKI_DIR/docs/code-docs" \
+    -not -path "$WIKI_DIR/docs" \
+    -type f -delete
+
+# Remove empty directories (but not docs or docs/code-docs)
+find "$WIKI_DIR" -mindepth 1 \
+    -not -path "$WIKI_DIR/.git*" \
+    -not -path "$WIKI_DIR/docs/code-docs*" \
+    -not -path "$WIKI_DIR/docs/code-docs" \
+    -not -path "$WIKI_DIR/docs" \
+    -type d -empty -delete
 
 # If code-docs exists, we'll do selective sync later
 CODE_DOCS_EXISTS=false
@@ -15,6 +29,9 @@ if [ -d "$WIKI_DIR/docs/code-docs" ]; then
     CODE_DOCS_EXISTS=true
     echo "📋 Existing code-docs found, will do selective sync"
 fi
+
+# Ensure docs directory exists
+mkdir -p "$WIKI_DIR/docs"
 
 echo "📄 Setting up homepage..."
 # Copy README.md to Home.md for wiki homepage
@@ -26,8 +43,13 @@ fi
 echo "📁 Copying documentation files..."
 # Copy root docs directory but handle code-docs specially
 if [ -d "docs" ]; then
-    # Copy everything except code-docs first
-    find "docs" -mindepth 1 -not -path "docs/code-docs*" -exec cp -r {} "$WIKI_DIR/docs/" \;
+    # Copy everything except code-docs
+    find "docs" -mindepth 1 -not -path "docs/code-docs*" -type f | while read -r file; do
+        # Create target directory structure
+        target_dir="$WIKI_DIR/$(dirname "$file")"
+        mkdir -p "$target_dir"
+        cp "$file" "$WIKI_DIR/$file"
+    done
     echo "✓ Copied root documentation (excluding code-docs)"
 fi
 
