@@ -3,8 +3,7 @@ name: Sync Documentation to Wiki
 on:
   push:
     branches:
-      - main
-  workflow_dispatch:  # Allow manual triggering
+      - feature/port-24-setup-tsdoc-injector-with-llm
 
 jobs:
   sync-wiki:
