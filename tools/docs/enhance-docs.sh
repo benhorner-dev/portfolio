@@ -97,7 +97,7 @@ $file_content"
 
     # Check if OPENAI_API_KEY is set
     if [ -z "$OPENAI_API_KEY" ]; then
-        print_error "OPENAI_API_KEY environment variable is not set"
+        print_error "OPENAI_API_KEY environment variable is not set" >&2
         echo "$file_content"
         return 1
     fi
@@ -112,7 +112,7 @@ $file_content"
             temperature: 0.3,
             max_tokens: 16384
         }' 2>/dev/null); then
-        print_error "Failed to build JSON payload for $file_path"
+        print_error "Failed to build JSON payload for $file_path" >&2
         echo "$file_content"
         return 1
     fi
@@ -122,22 +122,22 @@ $file_content"
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer $OPENAI_API_KEY" \
         -d "$api_payload" 2>/dev/null); then
-        print_error "Failed to make API call to OpenAI for $file_path"
+        print_error "Failed to make API call to OpenAI for $file_path" >&2
         echo "$file_content"
         return 1
     fi
 
     # Parse the response
     if ! response=$(echo "$curl_response" | jq -r '.choices[0].message.content' 2>/dev/null); then
-        print_error "Failed to parse OpenAI API response for $file_path"
-        print_debug "Raw response: $curl_response"
+        print_error "Failed to parse OpenAI API response for $file_path" >&2
+        print_debug "Raw response: $curl_response" >&2
         echo "$file_content"
         return 1
     fi
 
     if [ -z "$response" ] || [ "$response" = "null" ]; then
-        print_error "Empty or null response from OpenAI API for $file_path"
-        print_debug "Raw response: $curl_response"
+        print_error "Empty or null response from OpenAI API for $file_path" >&2
+        print_debug "Raw response: $curl_response" >&2
         echo "$file_content"
         return 1
     else
@@ -198,7 +198,10 @@ process_file_with_tsdoc() {
 
     while [ $retry_count -lt $MAX_RETRY_COUNT ]; do
         local doc_content
-        if doc_content=$(generate_docstrings "$original_content" "$error_message" "$file_path"); then
+        local temp_error_file="/tmp/generate_docstrings_error_$$"
+
+        # Call generate_docstrings and capture both stdout and stderr
+        if doc_content=$(generate_docstrings "$original_content" "$error_message" "$file_path" 2>"$temp_error_file"); then
             # Write the documented content
             echo "$doc_content" > "$file_path"
 
@@ -206,11 +209,23 @@ process_file_with_tsdoc() {
             if bunx tsc --noEmit --skipLibCheck --allowJs "$file_path" 2>/dev/null || \
                node --check "$file_path" 2>/dev/null; then
                 print_info "✅ Successfully added TSDoc to: $file_path"
+                rm -f "$temp_error_file"
                 return 0
+            else
+                error_message="Syntax validation failed"
             fi
+        else
+            # Function failed, show the error output
+            if [ -s "$temp_error_file" ]; then
+                print_error "generate_docstrings failed with error:"
+                cat "$temp_error_file" >&2
+            else
+                print_error "generate_docstrings failed with no error output"
+            fi
+            error_message="API call failed"
         fi
 
-        error_message="Syntax validation failed"
+        rm -f "$temp_error_file"
         retry_count=$((retry_count + 1))
         print_warning "⚠️ Retry $retry_count of $MAX_RETRY_COUNT for $file_path"
     done
