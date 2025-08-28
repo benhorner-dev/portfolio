@@ -24,91 +24,17 @@ jobs:
       - name: Extract PR and Branch Info
         id: extract_info
         run: |
-          echo "🔍 Event name: ${{ github.event_name }}"
-
-          if [[ "${{ github.event_name }}" == "deployment_status" ]]; then
-            # For deployment_status events, we need to get branch info from the deployment
-            DEPLOYMENT_REF="${{ github.event.deployment.ref }}"
-            DEPLOYMENT_ENV="${{ github.event.deployment.environment }}"
-            echo "🔍 Deployment ref: $DEPLOYMENT_REF"
-            echo "🔍 Deployment environment: $DEPLOYMENT_ENV"
-
-            # Check if deployment has payload with branch info
-            DEPLOYMENT_PAYLOAD='${{ toJson(github.event.deployment.payload) }}'
-            echo "🔍 Deployment payload: $DEPLOYMENT_PAYLOAD"
-
-            # Try to extract branch name from deployment description or payload
-            DEPLOYMENT_DESC="${{ github.event.deployment.description }}"
-            echo "🔍 Deployment description: $DEPLOYMENT_DESC"
-
-            # Method 1: Try to get branch from GitHub API using the commit SHA
-            COMMIT_SHA="$DEPLOYMENT_REF"
-            echo "🔍 Fetching branch info for commit: $COMMIT_SHA"
-
-            # Get branches that contain this commit
-            BRANCHES_RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/commits/$COMMIT_SHA/branches-where-head")
-
-            echo "🔍 Branches containing this commit:"
-            echo "$BRANCHES_RESPONSE" | jq -r '.[].name' || echo "No branches found or jq failed"
-
-            # Try to find a branch that looks like a feature branch (not main/master)
-            BRANCH_NAME=$(echo "$BRANCHES_RESPONSE" | jq -r '.[] | select(.name != "main" and .name != "master") | .name' | head -n 1)
-
-            if [[ -z "$BRANCH_NAME" || "$BRANCH_NAME" == "null" ]]; then
-              # Fallback: try to extract from deployment description or environment
-              if [[ "$DEPLOYMENT_DESC" =~ ([a-zA-Z0-9/_-]+) ]]; then
-                BRANCH_NAME="${BASH_REMATCH[1]}"
-                echo "🔍 Extracted branch from description: $BRANCH_NAME"
-              else
-                echo "❌ Could not determine branch name"
-                exit 1
-              fi
-            else
-              echo "✅ Found branch name: $BRANCH_NAME"
-            fi
-
-            # Try to extract PR number from branch name or find associated PR
-            if [[ "$BRANCH_NAME" =~ pr-([0-9]+) ]] || [[ "$BRANCH_NAME" =~ ([0-9]+) ]]; then
-              PR_NUMBER="${BASH_REMATCH[1]}"
-              echo "✅ Extracted PR number from branch name: $PR_NUMBER"
-            else
-              # Try to find PR for this branch
-              PR_RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-                "https://api.github.com/repos/${{ github.repository }}/pulls?head=${{ github.repository_owner }}:$BRANCH_NAME&state=open")
-
-              PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.[0].number // empty')
-
-              if [[ -n "$PR_NUMBER" && "$PR_NUMBER" != "null" ]]; then
-                echo "✅ Found PR number from API: $PR_NUMBER"
-              else
-                echo "⚠️ Could not find PR number, using 'unknown'"
-                PR_NUMBER="unknown"
-              fi
-            fi
-
-            # Construct Neon branch name
-            NEON_BRANCH_NAME="preview/$BRANCH_NAME"
-
-          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            # For pull_request events
-            PR_NUMBER="${{ github.event.number }}"
-            BRANCH_NAME="${{ github.head_ref }}"
-            NEON_BRANCH_NAME="preview/$BRANCH_NAME"
-            echo "✅ Using PR event data - PR: $PR_NUMBER, Branch: $BRANCH_NAME"
-          else
-            echo "❌ Unsupported event type: ${{ github.event_name }}"
-            exit 1
-          fi
-
-          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          echo "neon_branch_name=$NEON_BRANCH_NAME" >> $GITHUB_OUTPUT
-
-          echo "🔍 Final values:"
-          echo "  PR Number: $PR_NUMBER"
-          echo "  Branch: $BRANCH_NAME"
-          echo "  Neon Branch Name: $NEON_BRANCH_NAME"
+          ./tools/ci/extract-pr-info.sh \
+            "${{ github.event_name }}" \
+            "${{ secrets.GITHUB_TOKEN }}" \
+            "${{ github.repository }}" \
+            "${{ github.repository_owner }}" \
+            "${{ github.event.deployment.ref }}" \
+            "${{ github.event.deployment.environment }}" \
+            '${{ toJson(github.event.deployment.payload) }}' \
+            "${{ github.event.deployment.description }}" \
+            "${{ github.event.number }}" \
+            "${{ github.head_ref }}"
 
   migrate_preview_branch:
     name: Run Migrations on Preview Branch
@@ -125,78 +51,15 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - name: Get Neon Branch Connection String
-        id: get_neon_branch
+      - name: Run Migrations on Preview Branch
         run: |
-          NEON_BRANCH_NAME="${{ needs.setup.outputs.neon_branch_name }}"
           echo "🔍 Debug info:"
           echo "  PR Number: ${{ needs.setup.outputs.pr_number }}"
           echo "  Branch: ${{ needs.setup.outputs.branch }}"
-          echo "  Looking for Neon branch: '$NEON_BRANCH_NAME'"
-
-          # Get branch info from Neon API
-          echo "🔍 Fetching branches..."
-          RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" \
-            "https://console.neon.tech/api/v2/projects/${{ vars.NEON_PROJECT_ID }}/branches")
-
-          # Check if the API call was successful
-          if [ $? -ne 0 ]; then
-            echo "❌ Failed to call Neon API"
-            exit 1
-          fi
-
-          # Debug: Show available branches
-          echo "🔍 Available branches:"
-          echo "$RESPONSE" | jq -r '.branches[] | "Name: \(.name) | ID: \(.id)"'
-
-          # Get the branch ID for our target branch
-          BRANCH_ID=$(echo "$RESPONSE" | jq -r --arg branch_name "$NEON_BRANCH_NAME" \
-            '.branches[] | select(.name == $branch_name) | .id')
-
-          if [ "$BRANCH_ID" = "null" ] || [ -z "$BRANCH_ID" ]; then
-            echo "❌ Branch '$NEON_BRANCH_NAME' not found in Neon"
-            echo "Available branches:"
-            echo "$RESPONSE" | jq -r '.branches[].name'
-            exit 1
-          fi
-
-          echo "✅ Found branch ID: $BRANCH_ID"
-
-          # Now get the connection URI using the branch ID
-          echo "🔍 Fetching connection URI for branch ID: $BRANCH_ID"
-          URI_RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" \
-            "https://console.neon.tech/api/v2/projects/${{ vars.NEON_PROJECT_ID }}/connection_uri?branch_id=$BRANCH_ID&database_name=neondb&role_name=neondb_owner")
-
-          if [ $? -ne 0 ]; then
-            echo "❌ Failed to get connection URI from Neon API"
-            exit 1
-          fi
-
-          # Extract the URI from the response
-          DB_URL=$(echo "$URI_RESPONSE" | jq -r '.uri')
-
-          if [ "$DB_URL" = "null" ] || [ -z "$DB_URL" ]; then
-            echo "❌ Failed to get connection URI"
-            echo "URI Response: $URI_RESPONSE"
-            exit 1
-          fi
-
-          # Validate the URL format (GitHub Actions masks secrets, so we check for common patterns)
-          if [[ ! "$DB_URL" =~ (^postgres://|^postgresql://|\*\*\*.*neon\.tech) ]]; then
-            echo "❌ Invalid database URL format: '$DB_URL'"
-            exit 1
-          fi
-
-          echo "DATABASE_URL=$DB_URL" >> $GITHUB_OUTPUT
-          echo "✅ Found database URL for branch: '$NEON_BRANCH_NAME'"
-          echo "✅ Branch ID: $BRANCH_ID"
-          echo "✅ Connection URL retrieved successfully (masked by GitHub Actions)"
-      - name: Run Migrations on Preview Branch
-        run: |
-          bun install
-          bunx turbo migrate
-        env:
-          DATABASE_URL: "${{ steps.get_neon_branch.outputs.DATABASE_URL }}"
+          ./tools/ci/migrate-neon-branch.sh \
+            "${{ needs.setup.outputs.neon_branch_name }}" \
+            "${{ secrets.NEON_API_KEY }}" \
+            "${{ vars.NEON_PROJECT_ID }}"
 
   delete_preview_branch:
     name: Delete Preview Neon Branch
