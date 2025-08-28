@@ -203,21 +203,6 @@ $file_content"
         return 1
     fi
 
-    # Basic validation: check if response looks like code
-    if ! echo "$response" | grep -q -E "(import|export|function|class|interface|const|let|var)"; then
-        print_error "API response doesn't appear to contain valid TypeScript code for $file_path" >&2
-        print_debug "Response preview (first 200 chars): $(echo "$response" | head -c 200)..." >&2
-        echo "$file_content"
-        return 1
-    fi
-
-    # Check for common API response artifacts that shouldn't be in code
-    if echo "$response" | grep -q -E "(```|Here's|I'll help|Let me|The code)"; then
-        print_error "API response contains explanation text instead of pure code for $file_path" >&2
-        print_debug "Response preview (first 200 chars): $(echo "$response" | head -c 200)..." >&2
-        echo "$file_content"
-        return 1
-    fi
 
     echo "$response"
     return 0
