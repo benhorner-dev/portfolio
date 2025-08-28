@@ -69,12 +69,17 @@ Requirements:
 - Include usage examples where appropriate
 - Document edge cases and important considerations
 
-Rules:
+CRITICAL RULES:
+- Return ONLY the complete TypeScript/JavaScript code with added documentation
+- Do NOT include any explanatory text, introductions, or conclusions
+- Do NOT wrap in markdown code blocks (```)
 - Do NOT add triple-slash directives (/// <reference ...>)
-- Return ONLY the code with documentation, no explanations
-- Do NOT wrap in markdown code blocks
+- Start your response immediately with the first import/code line
+- End your response with the last line of code
 - Preserve all functionality exactly as is
-- Ensure syntactically valid TypeScript/JavaScript"
+- Ensure syntactically valid TypeScript/JavaScript
+
+Your response must be valid code that can be directly saved to a .ts file."
 
     if [ -n "$error_message" ]; then
         prompt="$prompt
@@ -196,10 +201,26 @@ $file_content"
         print_debug "Raw response: $curl_response" >&2
         echo "$file_content"
         return 1
-    else
-        echo "$response"
-        return 0
     fi
+
+    # Basic validation: check if response looks like code
+    if ! echo "$response" | grep -q -E "(import|export|function|class|interface|const|let|var)"; then
+        print_error "API response doesn't appear to contain valid TypeScript code for $file_path" >&2
+        print_debug "Response preview (first 200 chars): $(echo "$response" | head -c 200)..." >&2
+        echo "$file_content"
+        return 1
+    fi
+
+    # Check for common API response artifacts that shouldn't be in code
+    if echo "$response" | grep -q -E "(```|Here's|I'll help|Let me|The code)"; then
+        print_error "API response contains explanation text instead of pure code for $file_path" >&2
+        print_debug "Response preview (first 200 chars): $(echo "$response" | head -c 200)..." >&2
+        echo "$file_content"
+        return 1
+    fi
+
+    echo "$response"
+    return 0
 }
 
 # Function to backup original files
@@ -278,13 +299,18 @@ process_file_with_tsdoc() {
             echo "$doc_content" > "$file_path"
 
             # Try to validate the syntax
-            if bunx tsc --noEmit --skipLibCheck --allowJs "$file_path" 2>/dev/null || \
+            local tsc_errors
+            if tsc_errors=$(bunx tsc --noEmit --skipLibCheck --allowJs "$file_path" 2>&1) || \
                node --check "$file_path" 2>/dev/null; then
                 print_info "✅ Successfully added TSDoc to: $file_path"
                 rm -f "$temp_error_file"
                 return 0
             else
-                error_message="Syntax validation failed"
+                print_error "TypeScript validation failed for $file_path" >&2
+                print_debug "TypeScript errors: $tsc_errors" >&2
+                print_debug "Generated content preview (first 300 chars):" >&2
+                print_debug "$(head -c 300 "$file_path")" >&2
+                error_message="Syntax validation failed: $(echo "$tsc_errors" | head -n 3 | tr '\n' '; ')"
             fi
         else
             # Function failed, show the error output
