@@ -20,9 +20,6 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Install jq (for API calls)
-        run: sudo apt-get update && sudo apt-get install -y jq
-
       - name: Install dependencies
         run: bun install
 

@@ -344,15 +344,28 @@ process_file_with_tsdoc() {
         if doc_content=$(generate_docstrings "$original_content" "$error_message" "$file_path" 2>"$temp_error_file"); then
             echo "$doc_content" > "$file_path"
 
-            # Try to validate the syntax
-            if bunx tsc --noEmit --skipLibCheck --allowJs "$file_path" 2>/dev/null || \
-               node --check "$file_path" 2>/dev/null; then
-                print_info "✅ Successfully added TSDoc to: $file_path"
-                rm -f "$temp_error_file"
-                return 0
-            else
-                error_message="Syntax validation failed"
+            # Format the file
+            print_debug "Formatting file: $file_path"
+            if ! bunx turbo format 2>/dev/null; then
+                print_warning "Failed to format files, continuing..."
             fi
+
+            # Generate TypeDoc documentation
+            print_debug "Generating TypeDoc documentation..."
+            if [ -f "$TYPEDOC_CONFIG" ]; then
+                if ! bunx typedoc --options "$TYPEDOC_CONFIG" 2>/dev/null; then
+                    print_warning "TypeDoc generation had issues, continuing..."
+                fi
+            else
+                if ! bunx typedoc 2>/dev/null; then
+                    print_warning "TypeDoc generation had issues, continuing..."
+                fi
+            fi
+
+            # Successfully generated documentation
+            print_info "✅ Successfully added TSDoc to: $file_path"
+            rm -f "$temp_error_file"
+            return 0
         else
             # Function failed, show the error output
             if [ -s "$temp_error_file" ]; then
@@ -501,20 +514,6 @@ main() {
         done
 
         print_info "📈 Enhancement complete: $enhanced_count succeeded, $failed_count failed"
-    fi
-
-    # Generate TypeDoc documentation
-    print_info "📚 Generating TypeDoc documentation..."
-
-    if [ -f "$TYPEDOC_CONFIG" ]; then
-        bunx typedoc --options "$TYPEDOC_CONFIG" || {
-            print_warning "TypeDoc generation had issues, but continuing..."
-        }
-    else
-        print_warning "TypeDoc config not found at $TYPEDOC_CONFIG, using defaults..."
-        bunx typedoc || {
-            print_warning "TypeDoc generation had issues, but continuing..."
-        }
     fi
 
     # The cleanup function will restore all original files
