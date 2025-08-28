@@ -1,45 +1,70 @@
 name: Manage Preview Branch for Pull Request
-
 on:
   deployment_status:
   pull_request:
     types:
       - closed
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-
 jobs:
   setup:
     name: Setup
     outputs:
-      branch: ${{ steps.branch_name.outputs.current_branch }}
-      pr_number: ${{ steps.pr_info.outputs.pr_number }}
+      branch: ${{ steps.extract_info.outputs.branch }}
+      pr_number: ${{ steps.extract_info.outputs.pr_number }}
+      neon_branch_name: ${{ steps.extract_info.outputs.neon_branch_name }}
     runs-on: ubuntu-latest
     steps:
-      - name: Get branch name
-        id: branch_name
-        uses: tj-actions/branch-names@v8
-
-      - name: Get PR number from deployment
-        id: pr_info
+      - name: Extract PR and Branch Info
+        id: extract_info
         run: |
           echo "🔍 Event name: ${{ github.event_name }}"
-          echo "🔍 Event number: ${{ github.event.number }}"
 
           if [[ "${{ github.event_name }}" == "deployment_status" ]]; then
-            echo "🔍 Deployment ref: ${{ github.event.deployment.ref }}"
-            if [[ "${{ github.event.deployment.ref }}" =~ preview/pr-([0-9]+)- ]]; then
-              echo "pr_number=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
-              echo "✅ Extracted PR number from deployment ref: ${BASH_REMATCH[1]}"
+            # For deployment_status events, extract from deployment.ref
+            DEPLOYMENT_REF="${{ github.event.deployment.ref }}"
+            echo "🔍 Deployment ref: $DEPLOYMENT_REF"
+
+            # Extract PR number from deployment ref if it follows the pattern
+            if [[ "$DEPLOYMENT_REF" =~ preview/pr-([0-9]+)- ]]; then
+              PR_NUMBER="${BASH_REMATCH[1]}"
+              echo "✅ Extracted PR number from deployment ref: $PR_NUMBER"
             else
-              echo "pr_number=${{ github.event.number }}" >> $GITHUB_OUTPUT
-              echo "✅ Using event number as PR number: ${{ github.event.number }}"
+              echo "❌ Could not extract PR number from deployment ref: $DEPLOYMENT_REF"
+              exit 1
             fi
+
+            # For Vercel deployments, the branch name is usually the deployment ref itself
+            # or we can extract it from the deployment payload
+            BRANCH_NAME="$DEPLOYMENT_REF"
+
+            # If the deployment ref is in format like "feature/port-43-setup-neon-database"
+            # we need to construct the Neon branch name as "preview/{branch_name}"
+            if [[ "$DEPLOYMENT_REF" == preview/* ]]; then
+              NEON_BRANCH_NAME="$DEPLOYMENT_REF"
+            else
+              NEON_BRANCH_NAME="preview/$DEPLOYMENT_REF"
+            fi
+
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # For pull_request events
+            PR_NUMBER="${{ github.event.number }}"
+            BRANCH_NAME="${{ github.head_ref }}"
+            NEON_BRANCH_NAME="preview/$BRANCH_NAME"
+            echo "✅ Using PR event data - PR: $PR_NUMBER, Branch: $BRANCH_NAME"
           else
-            echo "pr_number=${{ github.event.number }}" >> $GITHUB_OUTPUT
-            echo "✅ Using event number as PR number: ${{ github.event.number }}"
+            echo "❌ Unsupported event type: ${{ github.event_name }}"
+            exit 1
           fi
+
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "neon_branch_name=$NEON_BRANCH_NAME" >> $GITHUB_OUTPUT
+
+          echo "🔍 Final values:"
+          echo "  PR Number: $PR_NUMBER"
+          echo "  Branch: $BRANCH_NAME"
+          echo "  Neon Branch Name: $NEON_BRANCH_NAME"
 
   migrate_preview_branch:
     name: Run Migrations on Preview Branch
@@ -52,38 +77,40 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-
       - name: Get Neon Branch Connection String
         id: get_neon_branch
         run: |
-          BRANCH_NAME="preview/pr-${{ needs.setup.outputs.pr_number }}-${{ needs.setup.outputs.branch }}"
-
+          NEON_BRANCH_NAME="${{ needs.setup.outputs.neon_branch_name }}"
           echo "🔍 Debug info:"
           echo "  PR Number: ${{ needs.setup.outputs.pr_number }}"
           echo "  Branch: ${{ needs.setup.outputs.branch }}"
-          echo "  Constructed branch name: $BRANCH_NAME"
+          echo "  Looking for Neon branch: $NEON_BRANCH_NAME"
 
           # Get branch info from Neon API
           RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" \
             "https://console.neon.tech/api/v2/projects/${{ vars.NEON_PROJECT_ID }}/branches")
 
+          # Debug: Show available branches
+          echo "🔍 Available branches:"
+          echo "$RESPONSE" | jq -r '.branches[].name'
+
           # Extract the database URL for our branch
-          DB_URL=$(echo "$RESPONSE" | jq -r --arg branch_name "$BRANCH_NAME" \
+          DB_URL=$(echo "$RESPONSE" | jq -r --arg branch_name "$NEON_BRANCH_NAME" \
             '.branches[] | select(.name == $branch_name) | .connection_uris[0].connection_uri')
 
           if [ "$DB_URL" = "null" ] || [ -z "$DB_URL" ]; then
-            echo "❌ Branch $BRANCH_NAME not found in Neon"
+            echo "❌ Branch $NEON_BRANCH_NAME not found in Neon"
+            echo "Available branches:"
+            echo "$RESPONSE" | jq -r '.branches[].name'
             exit 1
           fi
 
           echo "DATABASE_URL=$DB_URL" >> $GITHUB_OUTPUT
-          echo "✅ Found database URL for branch: $BRANCH_NAME"
-
+          echo "✅ Found database URL for branch: $NEON_BRANCH_NAME"
       - name: Run Migrations on Preview Branch
         run: |
           bun install
@@ -97,5 +124,5 @@ jobs:
     needs: setup
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     with:
-      branch_name: "preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}"
+      branch_name: "${{ needs.setup.outputs.neon_branch_name }}"
     secrets: inherit
