@@ -117,23 +117,44 @@ $file_content"
             model: $model,
             messages: [{role: "user", content: $content}],
             temperature: 0.3,
-            max_tokens: 16384
+            max_tokens: 4096
         }' 2>/dev/null); then
         print_error "Failed to build JSON payload for $file_path" >&2
         echo "$file_content"
         return 1
     fi
 
+    # Calculate timeout based on file size (minimum 30s, +1s per 10 lines)
+    local file_lines
+    file_lines=$(echo "$file_content" | wc -l)
+    local timeout=$((30 + file_lines / 10))
+    [ "$timeout" -gt 120 ] && timeout=120  # Cap at 2 minutes
+
+    print_debug "Using timeout of ${timeout}s for file with $file_lines lines"
+
     # Make the API call
     local curl_exit_code
-    curl_response=$(curl -s --max-time 30 -w "HTTP_CODE:%{http_code}" https://api.openai.com/v1/chat/completions \
+    curl_response=$(curl -s --max-time "$timeout" -w "HTTP_CODE:%{http_code}" https://api.openai.com/v1/chat/completions \
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer $OPENAI_API_KEY" \
         -d "$api_payload" 2>/dev/null)
     curl_exit_code=$?
 
     if [ $curl_exit_code -ne 0 ]; then
-        print_error "Failed to make API call to OpenAI for $file_path (curl exit code: $curl_exit_code)" >&2
+        local curl_error_msg
+        case $curl_exit_code in
+            6) curl_error_msg="Couldn't resolve host" ;;
+            7) curl_error_msg="Failed to connect to host" ;;
+            28) curl_error_msg="Operation timeout" ;;
+            35) curl_error_msg="SSL connect error" ;;
+            52) curl_error_msg="Empty reply from server" ;;
+            56) curl_error_msg="Failure receiving network data" ;;
+            *) curl_error_msg="Unknown curl error" ;;
+        esac
+
+        print_error "Failed to make API call to OpenAI for $file_path" >&2
+        print_error "  Curl exit code: $curl_exit_code ($curl_error_msg)" >&2
+        print_error "  Timeout used: ${timeout}s" >&2
         echo "$file_content"
         return 1
     fi
@@ -144,7 +165,20 @@ $file_content"
 
     if [ -n "$http_code" ] && [ "$http_code" -ne 200 ]; then
         print_error "OpenAI API returned HTTP $http_code for $file_path" >&2
-        print_debug "Response body: $curl_response" >&2
+
+        # Try to parse the error details from the API response
+        local error_code error_message error_type
+        if command -v jq >/dev/null 2>&1; then
+            error_code=$(echo "$curl_response" | jq -r '.error.code // "unknown"' 2>/dev/null)
+            error_message=$(echo "$curl_response" | jq -r '.error.message // "No message"' 2>/dev/null)
+            error_type=$(echo "$curl_response" | jq -r '.error.type // "unknown"' 2>/dev/null)
+
+            print_error "  Error Code: $error_code" >&2
+            print_error "  Error Type: $error_type" >&2
+            print_error "  Error Message: $error_message" >&2
+        fi
+
+        print_debug "Full response body: $curl_response" >&2
         echo "$file_content"
         return 1
     fi
@@ -202,9 +236,25 @@ process_file_with_tsdoc() {
         return 1
     fi
 
+    # Skip test files (they typically don't need TSDoc)
+    if echo "$file_path" | grep -q -E '\.(test|spec)\.(ts|tsx|js|jsx)$'; then
+        print_info "📝 Skipping test file: $file_path"
+        return 0
+    fi
+
     # Read original content
     local original_content
     original_content=$(cat "$file_path")
+
+    # Check file size (line count)
+    local line_count
+    line_count=$(echo "$original_content" | wc -l)
+
+    # Skip very large files (over 500 lines)
+    if [ "$line_count" -gt 500 ]; then
+        print_info "📝 Skipping large file ($line_count lines): $file_path"
+        return 0
+    fi
 
     # Skip if file already has substantial documentation
     local doc_lines
