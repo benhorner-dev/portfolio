@@ -15,36 +15,80 @@ jobs:
       neon_branch_name: ${{ steps.extract_info.outputs.neon_branch_name }}
     runs-on: ubuntu-latest
     steps:
+      - name: Debug Deployment Event
+        if: github.event_name == 'deployment_status'
+        run: |
+          echo "🔍 Full deployment event payload:"
+          echo '${{ toJson(github.event) }}'
+
       - name: Extract PR and Branch Info
         id: extract_info
         run: |
           echo "🔍 Event name: ${{ github.event_name }}"
 
           if [[ "${{ github.event_name }}" == "deployment_status" ]]; then
-            # For deployment_status events, extract from deployment.ref
+            # For deployment_status events, we need to get branch info from the deployment
             DEPLOYMENT_REF="${{ github.event.deployment.ref }}"
+            DEPLOYMENT_ENV="${{ github.event.deployment.environment }}"
             echo "🔍 Deployment ref: $DEPLOYMENT_REF"
+            echo "🔍 Deployment environment: $DEPLOYMENT_ENV"
 
-            # Extract PR number from deployment ref if it follows the pattern
-            if [[ "$DEPLOYMENT_REF" =~ preview/pr-([0-9]+)- ]]; then
+            # Check if deployment has payload with branch info
+            DEPLOYMENT_PAYLOAD='${{ toJson(github.event.deployment.payload) }}'
+            echo "🔍 Deployment payload: $DEPLOYMENT_PAYLOAD"
+
+            # Try to extract branch name from deployment description or payload
+            DEPLOYMENT_DESC="${{ github.event.deployment.description }}"
+            echo "🔍 Deployment description: $DEPLOYMENT_DESC"
+
+            # Method 1: Try to get branch from GitHub API using the commit SHA
+            COMMIT_SHA="$DEPLOYMENT_REF"
+            echo "🔍 Fetching branch info for commit: $COMMIT_SHA"
+
+            # Get branches that contain this commit
+            BRANCHES_RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/commits/$COMMIT_SHA/branches-where-head")
+
+            echo "🔍 Branches containing this commit:"
+            echo "$BRANCHES_RESPONSE" | jq -r '.[].name' || echo "No branches found or jq failed"
+
+            # Try to find a branch that looks like a feature branch (not main/master)
+            BRANCH_NAME=$(echo "$BRANCHES_RESPONSE" | jq -r '.[] | select(.name != "main" and .name != "master") | .name' | head -n 1)
+
+            if [[ -z "$BRANCH_NAME" || "$BRANCH_NAME" == "null" ]]; then
+              # Fallback: try to extract from deployment description or environment
+              if [[ "$DEPLOYMENT_DESC" =~ ([a-zA-Z0-9/_-]+) ]]; then
+                BRANCH_NAME="${BASH_REMATCH[1]}"
+                echo "🔍 Extracted branch from description: $BRANCH_NAME"
+              else
+                echo "❌ Could not determine branch name"
+                exit 1
+              fi
+            else
+              echo "✅ Found branch name: $BRANCH_NAME"
+            fi
+
+            # Try to extract PR number from branch name or find associated PR
+            if [[ "$BRANCH_NAME" =~ pr-([0-9]+) ]] || [[ "$BRANCH_NAME" =~ ([0-9]+) ]]; then
               PR_NUMBER="${BASH_REMATCH[1]}"
-              echo "✅ Extracted PR number from deployment ref: $PR_NUMBER"
+              echo "✅ Extracted PR number from branch name: $PR_NUMBER"
             else
-              echo "❌ Could not extract PR number from deployment ref: $DEPLOYMENT_REF"
-              exit 1
+              # Try to find PR for this branch
+              PR_RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                "https://api.github.com/repos/${{ github.repository }}/pulls?head=${{ github.repository_owner }}:$BRANCH_NAME&state=open")
+
+              PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.[0].number // empty')
+
+              if [[ -n "$PR_NUMBER" && "$PR_NUMBER" != "null" ]]; then
+                echo "✅ Found PR number from API: $PR_NUMBER"
+              else
+                echo "⚠️ Could not find PR number, using 'unknown'"
+                PR_NUMBER="unknown"
+              fi
             fi
 
-            # For Vercel deployments, the branch name is usually the deployment ref itself
-            # or we can extract it from the deployment payload
-            BRANCH_NAME="$DEPLOYMENT_REF"
-
-            # If the deployment ref is in format like "feature/port-43-setup-neon-database"
-            # we need to construct the Neon branch name as "preview/{branch_name}"
-            if [[ "$DEPLOYMENT_REF" == preview/* ]]; then
-              NEON_BRANCH_NAME="$DEPLOYMENT_REF"
-            else
-              NEON_BRANCH_NAME="preview/$DEPLOYMENT_REF"
-            fi
+            # Construct Neon branch name
+            NEON_BRANCH_NAME="preview/$BRANCH_NAME"
 
           elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
             # For pull_request events
