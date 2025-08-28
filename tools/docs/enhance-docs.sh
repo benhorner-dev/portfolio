@@ -92,21 +92,52 @@ $file_content"
 
     # Make API call to OpenAI
     local response
-    response=$(curl -s --max-time 30 https://api.openai.com/v1/chat/completions \
+    local curl_response
+    local api_payload
+
+    # Check if OPENAI_API_KEY is set
+    if [ -z "$OPENAI_API_KEY" ]; then
+        print_error "OPENAI_API_KEY environment variable is not set"
+        echo "$file_content"
+        return 1
+    fi
+
+    # Build JSON payload
+    if ! api_payload=$(jq -n \
+        --arg model "gpt-4o-mini" \
+        --arg content "$prompt" \
+        '{
+            model: $model,
+            messages: [{role: "user", content: $content}],
+            temperature: 0.3,
+            max_tokens: 16384
+        }' 2>/dev/null); then
+        print_error "Failed to build JSON payload for $file_path"
+        echo "$file_content"
+        return 1
+    fi
+
+    # Make the API call
+    if ! curl_response=$(curl -s --max-time 30 https://api.openai.com/v1/chat/completions \
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer $OPENAI_API_KEY" \
-        -d "$(jq -n \
-            --arg model "gpt-4o-mini" \
-            --arg content "$prompt" \
-            '{
-                model: $model,
-                messages: [{role: "user", content: $content}],
-                temperature: 0.3,
-                max_tokens: 16384
-            }')" 2>/dev/null | jq -r '.choices[0].message.content' 2>/dev/null)
+        -d "$api_payload" 2>/dev/null); then
+        print_error "Failed to make API call to OpenAI for $file_path"
+        echo "$file_content"
+        return 1
+    fi
+
+    # Parse the response
+    if ! response=$(echo "$curl_response" | jq -r '.choices[0].message.content' 2>/dev/null); then
+        print_error "Failed to parse OpenAI API response for $file_path"
+        print_debug "Raw response: $curl_response"
+        echo "$file_content"
+        return 1
+    fi
 
     if [ -z "$response" ] || [ "$response" = "null" ]; then
-        print_error "Failed to get response from OpenAI API for $file_path"
+        print_error "Empty or null response from OpenAI API for $file_path"
+        print_debug "Raw response: $curl_response"
         echo "$file_content"
         return 1
     else
