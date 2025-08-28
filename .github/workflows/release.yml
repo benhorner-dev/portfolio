@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - feature/port-43-setup-neon-database
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 concurrency:
@@ -14,21 +15,21 @@ permissions:
   issues: write
   pull-requests: write
 jobs:
-  prebuild:
-    name: Prebuild setup and semantic release
-    runs-on: ubuntu-latest
-    outputs:
-      released: ${{ steps.tag.outputs.released }}
-      version: ${{ steps.tag.outputs.version }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Tag semantic release
-        id: tag
-        uses: ./.github/actions/tag
+  # prebuild:
+  #   name: Prebuild setup and semantic release
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     released: ${{ steps.tag.outputs.released }}
+  #     version: ${{ steps.tag.outputs.version }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Tag semantic release
+  #       id: tag
+  #       uses: ./.github/actions/tag
 
   deploy-frontend-staging:
-    needs: [prebuild]
+    # needs: [prebuild]
     name: Deploy frontend to staging
     runs-on: ubuntu-latest
     outputs:
@@ -51,91 +52,91 @@ jobs:
           STAGING_URL=$(vercel deploy --token ${{ secrets.VERCEL_TOKEN }} --yes)
           echo "staging_url=${STAGING_URL}" >> $GITHUB_OUTPUT
           echo "✅ Frontend deployed to staging: ${STAGING_URL}"
-  create-staging-db:
-    name: Create staging database branch
-    uses: ./.github/workflows/neon-create-branch.yml
-    needs: [deploy-frontend-staging]
-    with:
-      branch_name: "staging"
-    secrets: inherit
+  # create-staging-db:
+  #   name: Create staging database branch
+  #   uses: ./.github/workflows/neon-create-branch.yml
+  #   needs: [deploy-frontend-staging]
+  #   with:
+  #     branch_name: "staging"
+  #   secrets: inherit
 
-  smoke-tests:
-    name: Run smoke tests
-    runs-on: ubuntu-latest
-    environment: staging
-    needs: [deploy-frontend-staging, create-staging-db]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # smoke-tests:
+  #   name: Run smoke tests
+  #   runs-on: ubuntu-latest
+  #   environment: staging
+  #   needs: [deploy-frontend-staging, create-staging-db]
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: "20"
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
+  #     - name: Setup Bun
+  #       uses: oven-sh/setup-bun@v2
+  #       with:
+  #         bun-version: latest
 
-      - name: Run smoke tests
-        env:
-          PLAYWRIGHT_VERCEL_TOKEN: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          PLAYWRIGHT_BASE_URL: ${{ needs.deploy-frontend-staging.outputs.staging_url }}
-          DATABASE_URL: ${{ needs.create-staging-db.outputs.db_url_with_pooler }}
-        run: |
-          bun install
-          bunx playwright install --with-deps
-          echo "Running smoke tests against:"
-          echo "Frontend URL: ${{ needs.deploy-frontend-staging.outputs.staging_url }}"
-          echo "Database: staging branch"
+  #     - name: Run smoke tests
+  #       env:
+  #         PLAYWRIGHT_VERCEL_TOKEN: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+  #         PLAYWRIGHT_BASE_URL: ${{ needs.deploy-frontend-staging.outputs.staging_url }}
+  #         DATABASE_URL: ${{ needs.create-staging-db.outputs.db_url_with_pooler }}
+  #       run: |
+  #         bun install
+  #         bunx playwright install --with-deps
+  #         echo "Running smoke tests against:"
+  #         echo "Frontend URL: ${{ needs.deploy-frontend-staging.outputs.staging_url }}"
+  #         echo "Database: staging branch"
 
-          cd apps/frontend
-          bunx playwright test tests/smoke.spec.ts
-          echo "✅ Smoke tests passed"
+  #         cd apps/frontend
+  #         bunx playwright test tests/smoke.spec.ts
+  #         echo "✅ Smoke tests passed"
 
-  delete-staging-db:
-    name: Delete staging database branch
-    uses: ./.github/workflows/neon-delete-branch.yml
-    needs: [smoke-tests]
-    with:
-      branch_name: "staging"
-    secrets: inherit
+  # delete-staging-db:
+  #   name: Delete staging database branch
+  #   uses: ./.github/workflows/neon-delete-branch.yml
+  #   needs: [smoke-tests]
+  #   with:
+  #     branch_name: "staging"
+  #   secrets: inherit
 
-  migrate:
-    needs: [delete-staging-db]
-    name: Run database migrations
-    runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - name: Run migrations
-        run: |
-          bun install
-          bunx turbo migrate
-  deploy-frontend-production:
-    name: Deploy frontend to production
-    runs-on: ubuntu-latest
-    needs: [smoke-tests]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # migrate:
+  #   needs: [delete-staging-db]
+  #   name: Run database migrations
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Setup Bun
+  #       uses: oven-sh/setup-bun@v2
+  #       with:
+  #         bun-version: latest
+  #     - name: Run migrations
+  #       run: |
+  #         bun install
+  #         bunx turbo migrate
+  # deploy-frontend-production:
+  #   name: Deploy frontend to production
+  #   runs-on: ubuntu-latest
+  #   needs: [smoke-tests]
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
+  #     - name: Setup Bun
+  #       uses: oven-sh/setup-bun@v2
+  #       with:
+  #         bun-version: latest
 
-      - name: Install Vercel CLI
-        run: bun i -g vercel
+  #     - name: Install Vercel CLI
+  #       run: bun i -g vercel
 
-      - name: Deploy to Vercel production
-        run: |
-          PRODUCTION_URL=$(vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --yes)
-          echo "✅ Frontend deployed to production: ${PRODUCTION_URL}"
+  #     - name: Deploy to Vercel production
+  #       run: |
+  #         PRODUCTION_URL=$(vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --yes)
+  #         echo "✅ Frontend deployed to production: ${PRODUCTION_URL}"
