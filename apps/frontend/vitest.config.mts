@@ -32,6 +32,9 @@ export default defineConfig({
 				"src/**/*.stories.{js,ts,jsx,tsx}",
 				"src/instrumentation-client.ts",
 				"src/instrumentation.ts",
+				"src/lib/db/schema.ts",
+				"src/lib/db/types.ts",
+				"src/lib/db/errors.ts",
 			],
 			thresholds: {
 				lines: 100,

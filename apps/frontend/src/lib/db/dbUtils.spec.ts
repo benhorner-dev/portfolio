@@ -205,6 +205,22 @@ describe("getDb singleton pattern", () => {
 			"Failed to connect to database: Error: Drizzle init failed",
 		);
 	});
+
+	it("should create production connection and support close operation", async () => {
+		const { getDb } = await import("./utils");
+
+		const { db: prodDb, close } = await getDb(testUri, Environment.PRODUCTION);
+
+		expect(prodDb).toBe(mockProdDbInstance);
+		expect(mockNeon).toHaveBeenCalledWith(testUri);
+		expect(mockServerLessDrizzle).toHaveBeenCalledWith(mockNeonInstance, {
+			schema: expect.any(Object),
+		});
+
+		await close();
+		const { db: newProdDb } = await getDb(testUri, Environment.PRODUCTION);
+		expect(newProdDb).toBe(mockProdDbInstance);
+	});
 });
 
 describe("dbOperation wrapper", () => {
@@ -245,6 +261,23 @@ describe("dbOperation wrapper", () => {
 
 		await expect(wrappedOperation()).rejects.toThrow(
 			"Failed to spy:  \n\n Error: Database error",
+		);
+	});
+
+	it("should include error cause in message when present", async () => {
+		const { dbOperation } = await import("./utils");
+		const { DbOpError } = await import("./errors");
+
+		const errorWithCause = new Error("Database error");
+		errorWithCause.cause = "Connection timeout";
+
+		const mockOperation = vi.fn().mockRejectedValue(errorWithCause);
+		Object.defineProperty(mockOperation, "name", { value: "testOperation" });
+		const wrappedOperation = await dbOperation(mockOperation);
+
+		await expect(wrappedOperation()).rejects.toBeInstanceOf(DbOpError);
+		await expect(wrappedOperation()).rejects.toThrow(
+			"Failed to testOperation:  Connection timeout \n\n Error: Database error",
 		);
 	});
 });

@@ -58,7 +58,13 @@ describe("Eval Schema Integration Tests", () => {
 	};
 
 	afterAll(async () => {
-		await close();
+		try {
+			// Ensure all database operations are completed before closing
+			await Promise.resolve();
+			await close();
+		} catch (error) {
+			console.error("Error during database cleanup:", error);
+		}
 	});
 
 	beforeEach(async () => {
