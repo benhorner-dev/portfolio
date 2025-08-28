@@ -1,5 +1,4 @@
 name: Sync Documentation to Wiki
-
 on:
   push:
     branches:
@@ -7,10 +6,11 @@ on:
 jobs:
   sync-wiki:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout repository with history
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -20,19 +20,44 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Generate documentation
-        run: bunx typedoc --options ./.config/typedoc.json
+      - name: Make scripts executable
+        run: |
+          chmod +x ./tools/docs/enhance-docs.sh
+          chmod +x ./tools/docs/sync-wiki.sh
+
+      - name: Enhance changed files with TSDoc
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+          TYPEDOC_CONFIG: ./.config/typedoc.json
+          ENHANCED_FILES_OUTPUT: /tmp/enhanced_files.txt
+        run: |
+          echo "🎯 Enhancing documentation for changed files..."
+          ./tools/docs/enhance-docs.sh
+          echo "✅ Enhancement complete"
+
+          # Show enhanced files for debugging
+          if [ -f /tmp/enhanced_files.txt ]; then
+            echo "📋 Enhanced files:"
+            cat /tmp/enhanced_files.txt
+          else
+            echo "📭 No files were enhanced"
+            touch /tmp/enhanced_files.txt  # Create empty file for consistency
+          fi
 
       - name: Checkout wiki
         uses: actions/checkout@v4
-
         with:
           repository: ${{ github.repository }}.wiki
           path: wiki
           token: ${{ secrets.WIKI_TOKEN }}
 
-      - name: Run wiki sync script
-        run: ./tools/docs/sync-wiki.sh
+      - name: Sync documentation to wiki
+        run: |
+          echo "📤 Syncing documentation to wiki..."
+          ./tools/docs/sync-wiki.sh /tmp/enhanced_files.txt
+          echo "✅ Wiki sync complete"
 
       - name: Commit and push wiki changes
         run: |
@@ -40,11 +65,28 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
+          # Check for changes
           if git diff --quiet && git diff --staged --quiet; then
-            echo "No changes to commit"
+            echo "📭 No changes to commit"
             exit 0
           fi
 
+          # Stage all changes
           git add .
-          git commit -m "docs: auto-sync documentation from main branch"
+
+          # Create detailed commit message
+          CHANGED_FILES=$(git diff --cached --name-only | wc -l)
+          ENHANCED_COUNT=$(wc -l < /tmp/enhanced_files.txt 2>/dev/null || echo "0")
+
+          # Commit with detailed message
+          git commit -m "📚 Auto-sync documentation from main branch
+
+          Changed files: $CHANGED_FILES
+          Enhanced files: $ENHANCED_COUNT
+          Source commit: ${{ github.sha }}
+          Triggered by: ${{ github.actor }}
+          Commit message: ${{ github.event.head_commit.message }}"
+
+          # Push to wiki
           git push origin HEAD
+          echo "✅ Wiki updated successfully!"
