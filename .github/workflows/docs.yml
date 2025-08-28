@@ -2,7 +2,7 @@ name: Sync Documentation to Wiki
 on:
   push:
     branches:
-      - feature/port-24-setup-tsdoc-injector-with-llm
+      - main
 jobs:
   sync-wiki:
     runs-on: ubuntu-latest
@@ -10,7 +10,7 @@ jobs:
       - name: Checkout repository with history
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2  # Need at least 2 commits to get the diff
+          fetch-depth: 2
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
