@@ -102,6 +102,13 @@ $file_content"
         return 1
     fi
 
+    # Check if API key looks valid (should start with sk-)
+    if ! echo "$OPENAI_API_KEY" | grep -q "^sk-"; then
+        print_error "OPENAI_API_KEY does not appear to be valid (should start with 'sk-')" >&2
+        echo "$file_content"
+        return 1
+    fi
+
     # Build JSON payload
     if ! api_payload=$(jq -n \
         --arg model "gpt-4o-mini" \
@@ -118,11 +125,26 @@ $file_content"
     fi
 
     # Make the API call
-    if ! curl_response=$(curl -s --max-time 30 https://api.openai.com/v1/chat/completions \
+    local curl_exit_code
+    curl_response=$(curl -s --max-time 30 -w "HTTP_CODE:%{http_code}" https://api.openai.com/v1/chat/completions \
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer $OPENAI_API_KEY" \
-        -d "$api_payload" 2>/dev/null); then
-        print_error "Failed to make API call to OpenAI for $file_path" >&2
+        -d "$api_payload" 2>/dev/null)
+    curl_exit_code=$?
+
+    if [ $curl_exit_code -ne 0 ]; then
+        print_error "Failed to make API call to OpenAI for $file_path (curl exit code: $curl_exit_code)" >&2
+        echo "$file_content"
+        return 1
+    fi
+
+    # Extract HTTP status code and response body
+    local http_code=$(echo "$curl_response" | grep -o "HTTP_CODE:[0-9]*" | cut -d: -f2)
+    curl_response=$(echo "$curl_response" | sed 's/HTTP_CODE:[0-9]*$//')
+
+    if [ -n "$http_code" ] && [ "$http_code" -ne 200 ]; then
+        print_error "OpenAI API returned HTTP $http_code for $file_path" >&2
+        print_debug "Response body: $curl_response" >&2
         echo "$file_content"
         return 1
     fi
