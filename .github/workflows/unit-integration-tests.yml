@@ -19,7 +19,20 @@ jobs:
       cancel-in-progress: true
     name: Test
     runs-on: ubuntu-latest
-
+    services:
+      backend-postgres:
+        image: postgres:latest
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,6 +46,13 @@ jobs:
         run: |
             bun install
             bunx playwright install --with-deps
+
+      - name: Set up Database
+        env:
+          # secretlint-disable-next-line
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: |
+          bunx turbo migrate
 
       - name: Run Tests
         env:
