@@ -132,29 +132,71 @@ jobs:
           echo "🔍 Debug info:"
           echo "  PR Number: ${{ needs.setup.outputs.pr_number }}"
           echo "  Branch: ${{ needs.setup.outputs.branch }}"
-          echo "  Looking for Neon branch: $NEON_BRANCH_NAME"
+          echo "  Looking for Neon branch: '$NEON_BRANCH_NAME'"
 
           # Get branch info from Neon API
           RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" \
             "https://console.neon.tech/api/v2/projects/${{ vars.NEON_PROJECT_ID }}/branches")
 
-          # Debug: Show available branches
-          echo "🔍 Available branches:"
-          echo "$RESPONSE" | jq -r '.branches[].name'
+          # Check if the API call was successful
+          if [ $? -ne 0 ]; then
+            echo "❌ Failed to call Neon API"
+            exit 1
+          fi
 
-          # Extract the database URL for our branch
+          # Debug: Show the raw response
+          echo "🔍 Raw API response:"
+          echo "$RESPONSE" | head -c 500
+          echo "..."
+
+          # Debug: Show available branches with extra detail
+          echo "🔍 Available branches (detailed):"
+          echo "$RESPONSE" | jq -r '.branches[] | "Name: \(.name) | ID: \(.id)"'
+
+          # More robust branch matching - try exact match first
+          echo "🔍 Searching for exact match: '$NEON_BRANCH_NAME'"
           DB_URL=$(echo "$RESPONSE" | jq -r --arg branch_name "$NEON_BRANCH_NAME" \
             '.branches[] | select(.name == $branch_name) | .connection_uris[0].connection_uri')
 
+          echo "🔍 First attempt result: '$DB_URL'"
+
+          # If exact match fails, try trimming whitespace and special characters
           if [ "$DB_URL" = "null" ] || [ -z "$DB_URL" ]; then
-            echo "❌ Branch $NEON_BRANCH_NAME not found in Neon"
-            echo "Available branches:"
-            echo "$RESPONSE" | jq -r '.branches[].name'
+            echo "🔍 Exact match failed, trying fuzzy matching..."
+
+            # Get all branch names and compare
+            ALL_BRANCHES=$(echo "$RESPONSE" | jq -r '.branches[].name')
+            echo "🔍 All branches for comparison:"
+            while IFS= read -r branch; do
+              echo "  Branch: '$branch'"
+              if [ "$branch" = "$NEON_BRANCH_NAME" ]; then
+                echo "    ✅ This matches our target!"
+                # Get the URL for this specific match
+                DB_URL=$(echo "$RESPONSE" | jq -r --arg branch_name "$branch" \
+                  '.branches[] | select(.name == $branch_name) | .connection_uris[0].connection_uri')
+                echo "    URL: '$DB_URL'"
+                break
+              fi
+            done <<< "$ALL_BRANCHES"
+          fi
+
+          # Final check
+          if [ "$DB_URL" = "null" ] || [ -z "$DB_URL" ]; then
+            echo "❌ Branch '$NEON_BRANCH_NAME' not found in Neon after all attempts"
+            echo "🔍 Final debug - exact branch names:"
+            echo "$RESPONSE" | jq -r '.branches[] | @json'
+            exit 1
+          fi
+
+          # Validate the URL format
+          if [[ ! "$DB_URL" =~ ^postgres:// ]]; then
+            echo "❌ Invalid database URL format: '$DB_URL'"
             exit 1
           fi
 
           echo "DATABASE_URL=$DB_URL" >> $GITHUB_OUTPUT
-          echo "✅ Found database URL for branch: $NEON_BRANCH_NAME"
+          echo "✅ Found database URL for branch: '$NEON_BRANCH_NAME'"
+          echo "✅ URL: $DB_URL"
       - name: Run Migrations on Preview Branch
         run: |
           bun install
