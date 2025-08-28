@@ -1,26 +1,22 @@
 #!/bin/bash
-# enhance-docs.sh - Adds TSDoc comments to changed files before TypeDoc generation
-# This script runs BEFORE sync-wiki.sh
+
 
 set -e
 
-# Configuration
 OPENAI_API_KEY="${OPENAI_API_KEY}"
 TEMP_BACKUP_DIR="./.temp-backup"
 MAX_RETRY_COUNT=3
 TYPEDOC_CONFIG="${TYPEDOC_CONFIG:-./.config/typedoc.json}"
 
-# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 ENHANCED_FILES_OUTPUT="${ENHANCED_FILES_OUTPUT:-/tmp/enhanced_files.txt}"
 
 
-# Function to print colored output
 print_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }
@@ -37,7 +33,6 @@ print_debug() {
     echo -e "${BLUE}[DEBUG]${NC} $1"
 }
 
-# Function to show usage
 show_usage() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
@@ -57,17 +52,14 @@ show_usage() {
     echo "  TYPEDOC_CONFIG               Path to TypeDoc config (default: ./.config/typedoc.json)"
 }
 
-# Function to check if file exists
 file_exists() {
     [ -f "$1" ]
 }
 
-# Function to check if directory exists
 dir_exists() {
     [ -d "$1" ]
 }
 
-# Function to ensure directory exists
 ensure_directory_exists() {
     local dir="$1"
     if ! dir_exists "$dir"; then
@@ -75,7 +67,6 @@ ensure_directory_exists() {
     fi
 }
 
-# Function to get files from directory
 get_files_from_directory() {
     local target_dir="$1"
 
@@ -93,23 +84,18 @@ get_files_from_directory() {
         ! -path "*/out/*"
 }
 
-# Function to get changed files from git
 get_changed_files_from_git() {
     local changed_files=""
 
     if [ -n "${GITHUB_SHA:-}" ]; then
-        # In GitHub Actions - get files changed in this push
         print_info "📊 Running in GitHub Actions environment"
 
-        # Try to get the diff from the push
         if [ -n "${GITHUB_EVENT_BEFORE:-}" ] && [ "${GITHUB_EVENT_BEFORE}" != "0000000000000000000000000000000000000000" ]; then
             changed_files=$(git diff --name-only "${GITHUB_EVENT_BEFORE}..${GITHUB_SHA}" 2>/dev/null || echo "")
         else
-            # Fallback to comparing with previous commit
             changed_files=$(git diff --name-only HEAD^ HEAD 2>/dev/null || echo "")
         fi
     else
-        # Local development - compare with main/master
         print_info "💻 Running in local environment"
         changed_files=$(git diff --name-only origin/main...HEAD 2>/dev/null || \
                         git diff --name-only origin/master...HEAD 2>/dev/null || \
@@ -117,13 +103,11 @@ get_changed_files_from_git() {
                         echo "")
     fi
 
-    # Filter for TypeScript/JavaScript files
     if [ -n "$changed_files" ]; then
         echo "$changed_files" | grep -E '\.(ts|tsx|js|jsx)$' | grep -v node_modules | grep -v dist | grep -v build | grep -v coverage || true
     fi
 }
 
-# Function to generate docstrings using OpenAI API
 generate_docstrings() {
     local file_content="$1"
     local error_message="$2"
@@ -161,26 +145,22 @@ File: $file_path
 Code:
 $file_content"
 
-    # Make API call to OpenAI
     local response
     local curl_response
     local api_payload
 
-    # Check if OPENAI_API_KEY is set
     if [ -z "$OPENAI_API_KEY" ]; then
         print_error "OPENAI_API_KEY environment variable is not set" >&2
         echo "$file_content"
         return 1
     fi
 
-    # Check if API key looks valid (should start with sk-)
     if ! echo "$OPENAI_API_KEY" | grep -q "^sk-"; then
         print_error "OPENAI_API_KEY does not appear to be valid (should start with 'sk-')" >&2
         echo "$file_content"
         return 1
     fi
 
-    # Build JSON payload
     if ! api_payload=$(jq -n \
         --arg model "gpt-4o-mini" \
         --arg content "$prompt" \
@@ -195,15 +175,13 @@ $file_content"
         return 1
     fi
 
-    # Calculate timeout based on file size (minimum 30s, +1s per 10 lines)
     local file_lines
     file_lines=$(echo "$file_content" | wc -l)
     local timeout=$((30 + file_lines / 10))
-    [ "$timeout" -gt 120 ] && timeout=120  # Cap at 2 minutes
+    [ "$timeout" -gt 120 ] && timeout=120
 
     print_debug "Using timeout of ${timeout}s for file with $file_lines lines" >&2
 
-    # Make the API call
     local curl_exit_code
     curl_response=$(curl -s --max-time "$timeout" -w "HTTP_CODE:%{http_code}" https://api.openai.com/v1/chat/completions \
         -H "Content-Type: application/json" \
@@ -230,14 +208,12 @@ $file_content"
         return 1
     fi
 
-    # Extract HTTP status code and response body
     local http_code=$(echo "$curl_response" | grep -o "HTTP_CODE:[0-9]*" | cut -d: -f2)
     curl_response=$(echo "$curl_response" | sed 's/HTTP_CODE:[0-9]*$//')
 
     if [ -n "$http_code" ] && [ "$http_code" -ne 200 ]; then
         print_error "OpenAI API returned HTTP $http_code for $file_path" >&2
 
-        # Try to parse the error details from the API response
         local error_code error_message error_type
         if command -v jq >/dev/null 2>&1; then
             error_code=$(echo "$curl_response" | jq -r '.error.code // "unknown"' 2>/dev/null)
@@ -254,7 +230,6 @@ $file_content"
         return 1
     fi
 
-    # Parse the response
     if ! response=$(echo "$curl_response" | jq -r '.choices[0].message.content' 2>/dev/null); then
         print_error "Failed to parse OpenAI API response for $file_path" >&2
         print_debug "Raw response: $curl_response" >&2
@@ -273,7 +248,6 @@ $file_content"
     fi
 }
 
-# Function to backup original files
 backup_file() {
     local file="$1"
     local backup_dir="${TEMP_BACKUP_DIR}/$(dirname "$file")"
@@ -283,7 +257,6 @@ backup_file() {
     print_debug "💾 Backed up: $file"
 }
 
-# Function to restore original files
 restore_file() {
     local file="$1"
 
@@ -295,39 +268,32 @@ restore_file() {
     fi
 }
 
-# Function to process a single file with TSDoc injection
 process_file_with_tsdoc() {
     local file_path="$1"
     local retry_count=0
     local error_message=""
 
-    # Skip if file doesn't exist
     if ! file_exists "$file_path"; then
         print_warning "File not found: $file_path"
         return 1
     fi
 
-    # Skip test files (they typically don't need TSDoc)
     if echo "$file_path" | grep -q -E '\.(test|spec)\.(ts|tsx|js|jsx)$'; then
         print_info "📝 Skipping test file: $file_path"
         return 0
     fi
 
-    # Read original content
     local original_content
     original_content=$(cat "$file_path")
 
-    # Check file size (line count)
     local line_count
     line_count=$(echo "$original_content" | wc -l)
 
-    # Skip very large files (over 500 lines)
     if [ "$line_count" -gt 500 ]; then
         print_info "📝 Skipping large file ($line_count lines): $file_path"
         return 0
     fi
 
-    # Skip if file already has substantial documentation
     local doc_lines
     doc_lines=$(echo "$original_content" | grep -c "^\s*\*" || true)
     doc_lines=${doc_lines:-0}
@@ -336,29 +302,24 @@ process_file_with_tsdoc() {
         return 0
     fi
 
-    # Backup the original file
     backup_file "$file_path"
 
     while [ $retry_count -lt $MAX_RETRY_COUNT ]; do
         local doc_content
         local temp_error_file="/tmp/generate_docstrings_error_$$"
 
-        # Call generate_docstrings and capture both stdout and stderr
         if doc_content=$(generate_docstrings "$original_content" "$error_message" "$file_path" 2>"$temp_error_file"); then
             echo "$doc_content" > "$file_path"
 
-            # Format the file
             print_debug "Formatting file: $file_path"
             if ! bunx turbo format 2>/dev/null; then
                 error_message="Failed to format files"
             else
-                # Generate TypeDoc documentation
                 print_debug "Generating TypeDoc documentation..."
                 if [ -f "$TYPEDOC_CONFIG" ]; then
                     if ! bunx typedoc --options "$TYPEDOC_CONFIG" 2>/dev/null; then
                         error_message="TypeDoc generation failed"
                     else
-                        # Successfully generated documentation
                         print_info "✅ Successfully added TSDoc to: $file_path"
                         echo "$file_path" >> "$ENHANCED_FILES_OUTPUT"
                         rm -f "$temp_error_file"
@@ -368,7 +329,6 @@ process_file_with_tsdoc() {
                     if ! bunx typedoc 2>/dev/null; then
                         error_message="TypeDoc generation failed"
                     else
-                        # Successfully generated documentation
                         print_info "✅ Successfully added TSDoc to: $file_path"
                         echo "$file_path" >> "$ENHANCED_FILES_OUTPUT"
                         rm -f "$temp_error_file"
@@ -377,7 +337,6 @@ process_file_with_tsdoc() {
                 fi
             fi
         else
-            # Function failed, show the error output
             if [ -s "$temp_error_file" ]; then
                 print_error "generate_docstrings failed with error:"
                 cat "$temp_error_file" >&2
@@ -392,20 +351,16 @@ process_file_with_tsdoc() {
         print_warning "⚠️ Retry $retry_count of $MAX_RETRY_COUNT for $file_path"
     done
 
-    # If all retries failed, restore original
     restore_file "$file_path"
     print_error "❌ Failed to add TSDoc to $file_path after $MAX_RETRY_COUNT attempts"
     return 1
 }
 
-# Function to cleanup temporary files
 cleanup() {
-    # Restore all backed up files
     if dir_exists "$TEMP_BACKUP_DIR"; then
         print_info "🧹 Restoring original files (removing TSDoc from codebase)..."
 
         find "$TEMP_BACKUP_DIR" -type f | while read -r backup_file; do
-            # Remove the backup dir prefix to get original path
             local original_file="${backup_file#$TEMP_BACKUP_DIR/}"
             if [ -f "$backup_file" ]; then
                 cp "$backup_file" "$original_file"
@@ -418,13 +373,11 @@ cleanup() {
     fi
 }
 
-# Main function
 main() {
-    local mode="git"  # Default mode
+    local mode="git"
     local target_directory=""
     local specific_files=()
 
-    # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
             -d|--directory)
@@ -435,7 +388,6 @@ main() {
             -f|--files)
                 mode="files"
                 shift
-                # Collect all remaining arguments as files
                 while [[ $# -gt 0 ]] && [[ $1 != -* ]]; do
                     specific_files+=("$1")
                     shift
@@ -456,21 +408,17 @@ main() {
     print_info "🚀 Starting TSDoc enhancement..."
     print_info "   Mode: $mode"
 
-    # Check for required dependencies
     command -v jq >/dev/null 2>&1 || { print_error "jq is required but not installed."; exit 1; }
     command -v curl >/dev/null 2>&1 || { print_error "curl is required but not installed."; exit 1; }
     command -v bunx >/dev/null 2>&1 || command -v bun >/dev/null 2>&1 || { print_error "bun is required but not installed."; exit 1; }
 
-    # Check for OpenAI API key
     if [ -z "$OPENAI_API_KEY" ]; then
         print_error "OPENAI_API_KEY environment variable is not set"
         exit 1
     fi
 
-    # Create temp backup directory
     ensure_directory_exists "$TEMP_BACKUP_DIR"
 
-    # Get list of files to process based on mode
     local ts_files=""
 
     case $mode in
@@ -480,7 +428,6 @@ main() {
             ;;
         "files")
             print_info "📋 Processing specific files"
-            # Validate that all specified files exist and are TS/JS files
             for file in "${specific_files[@]}"; do
                 if ! file_exists "$file"; then
                     print_error "File not found: $file"
@@ -490,7 +437,6 @@ main() {
                     print_warning "Not a TypeScript/JavaScript file: $file"
                 fi
             done
-            # Convert array to newline-separated string
             printf '%s\n' "${specific_files[@]}" | grep -E '\.(ts|tsx|js|jsx)$' || true
             ts_files=$(printf '%s\n' "${specific_files[@]}" | grep -E '\.(ts|tsx|js|jsx)$' || true)
             ;;
@@ -512,7 +458,6 @@ main() {
             [ -n "$file" ] && echo "  - $file"
         done
 
-        # Process each file
         echo "$ts_files" | while IFS= read -r file; do
             if [ -n "$file" ] && file_exists "$file"; then
                 if process_file_with_tsdoc "$file"; then
@@ -539,7 +484,6 @@ main() {
         fi
     fi
 
-    # The cleanup function will restore all original files
     cleanup
 
     print_info "✅ TSDoc enhancement completed successfully!"
@@ -547,8 +491,6 @@ main() {
     print_info "   Generated documentation is ready in the output directory"
 }
 
-# Set up trap for cleanup on exit
 trap cleanup EXIT INT TERM
 
-# Run main function
 main "$@"
