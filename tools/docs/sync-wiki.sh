@@ -3,11 +3,18 @@ set -e
 
 WIKI_DIR="wiki"
 REPO_ROOT="."
-ENRICHED_FILES_LIST="${ENRICHED_FILES_LIST:-/tmp/enriched_files.txt}"
+ENHANCED_FILES_LIST="${1:-}"  # Pass enhanced files list as first argument
 
-echo "🧹 Cleaning wiki directory (preserving .git and code-docs)..."
-# Clean wiki but keep .git and existing code-docs for selective sync
+echo "🧹 Cleaning wiki directory..."
+# Clean wiki but keep .git and preserve existing code-docs
 find "$WIKI_DIR" -mindepth 1 -not -path "$WIKI_DIR/.git*" -not -path "$WIKI_DIR/docs/code-docs*" -delete
+
+# If code-docs exists, we'll do selective sync later
+CODE_DOCS_EXISTS=false
+if [ -d "$WIKI_DIR/docs/code-docs" ]; then
+    CODE_DOCS_EXISTS=true
+    echo "📋 Existing code-docs found, will do selective sync"
+fi
 
 echo "📄 Setting up homepage..."
 # Copy README.md to Home.md for wiki homepage
@@ -17,156 +24,185 @@ if [ -f "README.md" ]; then
 fi
 
 echo "📁 Copying documentation files..."
-# Copy root docs directory (excluding code-docs for now)
+# Copy root docs directory but handle code-docs specially
 if [ -d "docs" ]; then
-    # Create docs directory structure
-    mkdir -p "$WIKI_DIR/docs"
-
     # Copy everything except code-docs first
     find "docs" -mindepth 1 -not -path "docs/code-docs*" -exec cp -r {} "$WIKI_DIR/docs/" \;
-
     echo "✓ Copied root documentation (excluding code-docs)"
 fi
 
-# Handle code-docs with selective sync
-if [ -d "docs/code-docs" ]; then
-    echo "🔄 Processing code-docs with selective sync..."
+# Function to convert file path to code-docs markdown filename
+# e.g., apps/frontend/src/lib/db/commands/setAutoEval.ts -> lib.db.commands.setAutoEval.md
+path_to_codedocs_name() {
+    local filepath="$1"
+    local app_name="$2"  # e.g., "frontend"
 
-    WIKI_CODE_DOCS="$WIKI_DIR/docs/code-docs"
-    SOURCE_CODE_DOCS="docs/code-docs"
+    # Remove the app prefix (e.g., apps/frontend/src/)
+    local relative_path="${filepath#apps/${app_name}/src/}"
 
-    # Create code-docs directory if it doesn't exist
-    mkdir -p "$WIKI_CODE_DOCS"
+    # Convert path separators to dots and add .md extension
+    echo "$relative_path" | sed 's/\//./g' | sed 's/\.(ts|tsx|js|jsx)$/.md/'
+}
 
-    # Always update navigation and media files
-    echo "📋 Updating navigation and media files..."
-    if [ -f "$SOURCE_CODE_DOCS/Home.md" ]; then
-        cp "$SOURCE_CODE_DOCS/Home.md" "$WIKI_CODE_DOCS/CodeDocsHome.md"
-        echo "✓ Updated CodeDocsHome.md"
+# Function to find which app a file belongs to
+get_app_name() {
+    local filepath="$1"
+
+    if [[ "$filepath" =~ ^apps/([^/]+)/ ]]; then
+        echo "${BASH_REMATCH[1]}"
+    else
+        echo ""
     fi
+}
 
-    if [ -f "$SOURCE_CODE_DOCS/_Sidebar.md" ]; then
-        cp "$SOURCE_CODE_DOCS/_Sidebar.md" "$WIKI_CODE_DOCS/"
+# Handle code-docs synchronization
+echo "📚 Processing code-docs synchronization..."
+
+if [ -d "docs/code-docs" ]; then
+    # Ensure code-docs directory exists in wiki
+    mkdir -p "$WIKI_DIR/docs/code-docs"
+
+    # Always copy/update navigation files and media
+    echo "📋 Updating navigation files and media..."
+    if [ -f "docs/code-docs/_Sidebar.md" ]; then
+        cp "docs/code-docs/_Sidebar.md" "$WIKI_DIR/docs/code-docs/"
         echo "✓ Updated _Sidebar.md"
     fi
 
-    # Copy media directory
-    if [ -d "$SOURCE_CODE_DOCS/_media" ]; then
-        cp -r "$SOURCE_CODE_DOCS/_media" "$WIKI_CODE_DOCS/"
+    if [ -f "docs/code-docs/Home.md" ]; then
+        cp "docs/code-docs/Home.md" "$WIKI_DIR/docs/code-docs/CodeDocsHome.md"
+        echo "✓ Updated CodeDocsHome.md"
+    fi
+
+    if [ -d "docs/code-docs/_media" ]; then
+        cp -r "docs/code-docs/_media" "$WIKI_DIR/docs/code-docs/"
         echo "✓ Updated media files"
     fi
 
-    # Get list of all current source files (ground truth)
-    SOURCE_MD_FILES=$(find "$SOURCE_CODE_DOCS" -name "*.md" -not -name "Home.md" -not -name "_Sidebar.md" -type f)
-
-    # Get list of enriched files (files that were enhanced with TSDoc)
-    ENRICHED_FILES=""
-    if [ -f "$ENRICHED_FILES_LIST" ]; then
-        ENRICHED_FILES=$(cat "$ENRICHED_FILES_LIST")
-        echo "📝 Found enriched files list with $(echo "$ENRICHED_FILES" | wc -l) files"
-    else
-        echo "⚠️  No enriched files list found at $ENRICHED_FILES_LIST"
-        echo "   This means no files were enhanced with TSDoc in this run"
+    # Copy packages.md if it exists
+    if [ -f "docs/code-docs/packages.md" ]; then
+        cp "docs/code-docs/packages.md" "$WIKI_DIR/docs/code-docs/"
+        echo "✓ Updated packages.md"
     fi
 
-    # Function to check if a source path corresponds to an enriched file
-    is_enriched() {
-        local source_md_file="$1"
+    # Get list of all current code-docs markdown files (ground truth)
+    echo "🔍 Analyzing current code-docs structure..."
+    CURRENT_CODEDOCS_FILES=$(find "docs/code-docs" -name "*.md" -not -name "_Sidebar.md" -not -name "Home.md" -not -name "packages.md" -type f | sort)
 
-        # Convert source md file path to original source code path
-        # Example: docs/code-docs/lib.db.commands.setAutoEval.md -> apps/frontend/src/lib/db/commands/setAutoEval.ts
-
-        # Extract the base name without .md extension
-        local base_name=$(basename "$source_md_file" .md)
-
-        # Parse the typedoc naming convention
-        # lib.db.commands.setAutoEval.md maps to lib/db/commands/setAutoEval.ts
-        # Handle different patterns: Class.Name, Function.Name, Variable.Name, etc.
-
-        local file_path=""
-        if [[ "$base_name" == *"."* ]]; then
-            # Convert dots to path separators, but handle special cases
-            if [[ "$base_name" =~ ^(.+)\.(Class|Function|Variable|Interface|TypeAlias|Enumeration)\.(.+)$ ]]; then
-                # Pattern: lib.db.commands.Function.setAutoEval
-                local path_part="${BASH_REMATCH[1]}"
-                local type_part="${BASH_REMATCH[2]}"
-                local name_part="${BASH_REMATCH[3]}"
-                file_path=$(echo "$path_part" | tr '.' '/')
-            elif [[ "$base_name" =~ ^(.+)\.([^.]+)$ ]]; then
-                # Pattern: lib.db.commands.setAutoEval (assuming last part is filename)
-                local path_part="${BASH_REMATCH[1]}"
-                local name_part="${BASH_REMATCH[2]}"
-                file_path=$(echo "$path_part" | tr '.' '/')
-            else
-                # Simple case: just convert dots to slashes
-                file_path=$(echo "$base_name" | tr '.' '/')
+    # Get list of existing wiki code-docs files
+    EXISTING_WIKI_CODEDOCS=()
+    if [ "$CODE_DOCS_EXISTS" = true ]; then
+        while IFS= read -r file; do
+            if [ -n "$file" ]; then
+                EXISTING_WIKI_CODEDOCS+=("$file")
             fi
-        else
-            file_path="$base_name"
-        fi
+        done < <(find "$WIKI_DIR/docs/code-docs" -name "*.md" -not -name "_Sidebar.md" -not -name "CodeDocsHome.md" -not -name "packages.md" -type f 2>/dev/null | sort || true)
+    fi
 
-        # Check against enriched files list
-        # Look for the file_path pattern in any of the enriched files
-        if [ -n "$ENRICHED_FILES" ]; then
-            echo "$ENRICHED_FILES" | grep -q "$file_path" && return 0
-        fi
+    # Process enhanced files for selective updates
+    ENHANCED_CODEDOCS_FILES=()
+    if [ -n "$ENHANCED_FILES_LIST" ] && [ -f "$ENHANCED_FILES_LIST" ]; then
+        echo "📝 Processing enhanced files list..."
+        while IFS= read -r enhanced_file; do
+            if [ -n "$enhanced_file" ]; then
+                # Convert enhanced file path to expected code-docs filename
+                app_name=$(get_app_name "$enhanced_file")
+                if [ -n "$app_name" ]; then
+                    codedocs_name=$(path_to_codedocs_name "$enhanced_file" "$app_name")
+                    expected_codedocs_path="docs/code-docs/$codedocs_name"
 
-        return 1
-    }
-
-    # Process each source file
-    echo "🔍 Processing code documentation files..."
-    UPDATED_COUNT=0
-    SKIPPED_COUNT=0
-
-    for source_file in $SOURCE_MD_FILES; do
-        wiki_file="$WIKI_CODE_DOCS/$(basename "$source_file")"
-
-        if is_enriched "$source_file"; then
-            # This file was enriched, so update it
-            cp "$source_file" "$wiki_file"
-            echo "✓ Updated (enriched): $(basename "$source_file")"
-            ((UPDATED_COUNT++))
-        else
-            # This file wasn't enriched, only update if it doesn't exist in wiki
-            if [ ! -f "$wiki_file" ]; then
-                cp "$source_file" "$wiki_file"
-                echo "✓ Added (new): $(basename "$source_file")"
-                ((UPDATED_COUNT++))
-            else
-                echo "⏭️  Skipped (unchanged): $(basename "$source_file")"
-                ((SKIPPED_COUNT++))
+                    # Check if this code-docs file actually exists
+                    if [ -f "$expected_codedocs_path" ]; then
+                        ENHANCED_CODEDOCS_FILES+=("$expected_codedocs_path")
+                        echo "  ✓ Enhanced: $enhanced_file -> $codedocs_name"
+                    fi
+                fi
             fi
+        done < "$ENHANCED_FILES_LIST"
+
+        echo "📊 Found ${#ENHANCED_CODEDOCS_FILES[@]} enhanced code-docs files"
+    else
+        echo "⚠️ No enhanced files list provided, will sync all code-docs"
+    fi
+
+    # Copy/update code-docs files
+    echo "🔄 Syncing code-docs files..."
+
+    # Create arrays to track what we're doing
+    COPIED_FILES=0
+    UPDATED_FILES=0
+
+    while IFS= read -r codedocs_file; do
+        if [ -n "$codedocs_file" ]; then
+            filename=$(basename "$codedocs_file")
+            wiki_path="$WIKI_DIR/$codedocs_file"
+
+            # Determine if this file should be updated
+            SHOULD_UPDATE=false
+
+            # Always update if no enhanced list provided
+            if [ -z "$ENHANCED_FILES_LIST" ] || [ ! -f "$ENHANCED_FILES_LIST" ]; then
+                SHOULD_UPDATE=true
+            else
+                # Update if this file was enhanced
+                for enhanced_file in "${ENHANCED_CODEDOCS_FILES[@]}"; do
+                    if [ "$codedocs_file" = "$enhanced_file" ]; then
+                        SHOULD_UPDATE=true
+                        break
+                    fi
+                done
+
+                # Also update if the file doesn't exist in wiki yet
+                if [ ! -f "$wiki_path" ]; then
+                    SHOULD_UPDATE=true
+                fi
+            fi
+
+            if [ "$SHOULD_UPDATE" = true ]; then
+                # Ensure directory exists
+                mkdir -p "$(dirname "$wiki_path")"
+
+                if [ -f "$wiki_path" ]; then
+                    cp "$codedocs_file" "$wiki_path"
+                    UPDATED_FILES=$((UPDATED_FILES + 1))
+                    echo "  ↻ Updated: $filename"
+                else
+                    cp "$codedocs_file" "$wiki_path"
+                    COPIED_FILES=$((COPIED_FILES + 1))
+                    echo "  + Added: $filename"
+                fi
+            else
+                echo "  - Skipped: $filename (not enhanced)"
+            fi
+        fi
+    done <<< "$CURRENT_CODEDOCS_FILES"
+
+    # Remove wiki code-docs files that no longer exist in the source
+    echo "🗑️ Removing obsolete code-docs files..."
+    REMOVED_FILES=0
+
+    for wiki_file in "${EXISTING_WIKI_CODEDOCS[@]}"; do
+        # Convert wiki path to relative path for comparison
+        relative_wiki_path="${wiki_file#$WIKI_DIR/}"
+
+        # Check if this file still exists in current code-docs
+        if [ ! -f "$relative_wiki_path" ]; then
+            rm -f "$wiki_file"
+            REMOVED_FILES=$((REMOVED_FILES + 1))
+            echo "  - Removed: $(basename "$wiki_file")"
         fi
     done
 
-    # Clean up obsolete files in wiki that no longer exist in source
-    echo "🧹 Removing obsolete documentation files..."
-    REMOVED_COUNT=0
+    echo "✅ Code-docs sync complete:"
+    echo "  📁 New files: $COPIED_FILES"
+    echo "  ↻ Updated files: $UPDATED_FILES"
+    echo "  🗑️ Removed files: $REMOVED_FILES"
 
-    if [ -d "$WIKI_CODE_DOCS" ]; then
-        # Get all existing wiki md files (excluding navigation files)
-        EXISTING_WIKI_FILES=$(find "$WIKI_CODE_DOCS" -name "*.md" -not -name "CodeDocsHome.md" -not -name "_Sidebar.md" -type f)
-
-        for wiki_file in $EXISTING_WIKI_FILES; do
-            wiki_basename=$(basename "$wiki_file")
-            source_file="$SOURCE_CODE_DOCS/$wiki_basename"
-
-            if [ ! -f "$source_file" ]; then
-                rm "$wiki_file"
-                echo "🗑️  Removed obsolete: $wiki_basename"
-                ((REMOVED_COUNT++))
-            fi
-        done
-    fi
-
-    echo "📊 Code-docs sync summary:"
-    echo "   - Updated/Added: $UPDATED_COUNT files"
-    echo "   - Skipped (unchanged): $SKIPPED_COUNT files"
-    echo "   - Removed (obsolete): $REMOVED_COUNT files"
+else
+    echo "⚠️ No code-docs directory found in source"
 fi
 
-# Copy package docs (unchanged from original)
+# Copy package docs (unchanged)
 if [ -d "apps" ]; then
     for package_dir in apps/*/; do
         if [ -d "${package_dir}docs" ]; then
@@ -192,16 +228,18 @@ cat > "$WIKI_DIR/_Footer.md" << 'EOF'
 EOF
 
 # Add root docs to sidebar
-if [ -d "docs" ]; then
+if [ -d "$WIKI_DIR/docs" ]; then
     echo "" >> "$WIKI_DIR/_Sidebar.md"
     echo "### Documentation" >> "$WIKI_DIR/_Sidebar.md"
     echo "" >> "$WIKI_DIR/_Sidebar.md"
-    # Handle code-docs specially - link to apps page
-    if [ -d "docs/code-docs" ]; then
+
+    # Handle code-docs specially - link to CodeDocsHome
+    if [ -d "$WIKI_DIR/docs/code-docs" ]; then
         echo "- [Code Documentation](CodeDocsHome)" >> "$WIKI_DIR/_Sidebar.md"
     fi
+
     # Find all other markdown files in docs (excluding code-docs subdirectory)
-    find "docs" -name "*.md" -type f -not -path "docs/code-docs/*" | sort | while read -r file; do
+    find "$WIKI_DIR/docs" -name "*.md" -type f -not -path "$WIKI_DIR/docs/code-docs/*" | sort | while read -r file; do
         # Use just the filename without extension as the wiki page name
         name=$(basename "$file" .md)
         echo "- [$name]($name)" >> "$WIKI_DIR/_Sidebar.md"
@@ -209,10 +247,10 @@ if [ -d "docs" ]; then
 fi
 
 # Add apps docs to sidebar
-if [ -d "apps" ]; then
+if [ -d "$WIKI_DIR/apps" ]; then
     echo "" >> "$WIKI_DIR/_Sidebar.md"
     echo "### Apps" >> "$WIKI_DIR/_Sidebar.md"
-    for package_dir in apps/*/; do
+    for package_dir in "$WIKI_DIR/apps"/*/; do
         if [ -d "${package_dir}docs" ]; then
             package_name=$(basename "$package_dir")
             echo "" >> "$WIKI_DIR/_Sidebar.md"
@@ -232,6 +270,10 @@ echo "✅ Wiki sync completed!"
 
 # Show what was synced
 echo ""
-echo "📊 Overall Sync Summary:"
-echo "- Total files synced: $(find "$WIKI_DIR" -name "*.md" -not -name "_Sidebar.md" | wc -l)"
+echo "📊 Sync Summary:"
+if [ -n "$ENHANCED_FILES_LIST" ] && [ -f "$ENHANCED_FILES_LIST" ]; then
+    ENHANCED_COUNT=$(wc -l < "$ENHANCED_FILES_LIST" 2>/dev/null || echo "0")
+    echo "- Enhanced files processed: $ENHANCED_COUNT"
+fi
+echo "- Total wiki files: $(find "$WIKI_DIR" -name "*.md" -not -name "_Sidebar.md" -not -name "_Footer.md" | wc -l)"
 echo "- Sidebar entries: $(grep -c "^- \[" "$WIKI_DIR/_Sidebar.md" || echo "0")"
