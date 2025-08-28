@@ -58,4 +58,6 @@ jobs:
         env:
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
           TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+          # secretlint-disable-next-line
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
         run: bunx turbo test
