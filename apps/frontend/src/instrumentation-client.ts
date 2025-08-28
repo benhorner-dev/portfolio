@@ -12,8 +12,7 @@ Sentry.init({
 	debug: false,
 	environment: process.env.VERCEL_ENV || Environment.DEVELOPMENT,
 });
-const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY || "";
-posthog.init(POSTHOG_KEY, {
+posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY || "", {
 	api_host: "/ingest",
 	ui_host: "https://us.posthog.com",
 	defaults: "2025-05-24",
