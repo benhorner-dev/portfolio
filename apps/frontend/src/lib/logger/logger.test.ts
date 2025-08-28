@@ -7,7 +7,7 @@ import {
 	getLogger,
 	getPinoLogger,
 	LogLevel,
-	ServerDevelopmentLogger,
+	ServerDevLogger,
 	ServerProductionLogger,
 } from "@/lib/logger";
 
@@ -542,7 +542,7 @@ describe("ServerDevelopmentLogger", () => {
 	});
 
 	it("should log info messages with correct format", () => {
-		const logger = new ServerDevelopmentLogger();
+		const logger = new ServerDevLogger();
 		const consoleSpy = vi.spyOn(console, "info");
 
 		logger.info("Server info", { data: "test" });
@@ -555,7 +555,7 @@ describe("ServerDevelopmentLogger", () => {
 	});
 
 	it("should log error messages with correct format", () => {
-		const logger = new ServerDevelopmentLogger();
+		const logger = new ServerDevLogger();
 		const consoleSpy = vi.spyOn(console, "error");
 
 		logger.error("Server error");
@@ -567,7 +567,7 @@ describe("ServerDevelopmentLogger", () => {
 	});
 
 	it("should log warn messages with correct format", () => {
-		const logger = new ServerDevelopmentLogger();
+		const logger = new ServerDevLogger();
 		const consoleSpy = vi.spyOn(console, "warn");
 
 		logger.warn("Server warning");
@@ -579,7 +579,7 @@ describe("ServerDevelopmentLogger", () => {
 	});
 
 	it("should log debug messages with correct format", () => {
-		const logger = new ServerDevelopmentLogger();
+		const logger = new ServerDevLogger();
 		const consoleSpy = vi.spyOn(console, "debug");
 
 		logger.debug("Server debug");
@@ -591,7 +591,7 @@ describe("ServerDevelopmentLogger", () => {
 	});
 
 	it("should log trace messages with correct format", () => {
-		const logger = new ServerDevelopmentLogger();
+		const logger = new ServerDevLogger();
 		const consoleSpy = vi.spyOn(console, "log");
 
 		logger.trace("Server trace");
@@ -603,10 +603,10 @@ describe("ServerDevelopmentLogger", () => {
 	});
 
 	it("should return new instance from child method", () => {
-		const logger = new ServerDevelopmentLogger();
+		const logger = new ServerDevLogger();
 		const childLogger = logger.child({ service: "test" });
 
-		expect(childLogger).toBeInstanceOf(ServerDevelopmentLogger);
+		expect(childLogger).toBeInstanceOf(ServerDevLogger);
 		expect(childLogger).not.toBe(logger);
 	});
 });
