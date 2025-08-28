@@ -199,7 +199,7 @@ export class ServerProductionLogger extends BaseLogger {
 	}
 }
 
-export class ServerDevLogger extends BaseLogger {
+export class ServerDevelopmentLogger extends BaseLogger {
 	level = LogLevelDefault.DEBUG;
 	private timestamp = () => new Date().toLocaleTimeString();
 
@@ -224,7 +224,7 @@ export class ServerDevLogger extends BaseLogger {
 	}
 
 	child(_obj?: unknown): Logger {
-		return new ServerDevLogger();
+		return new ServerDevelopmentLogger();
 	}
 }
 
@@ -262,7 +262,7 @@ export function getLogger(
 	}
 
 	if (!isProduction) {
-		return new ServerDevLogger();
+		return new ServerDevelopmentLogger();
 	}
 
 	const pinoLogger = getPinoLogger(service);
