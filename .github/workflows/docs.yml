@@ -34,7 +34,7 @@ jobs:
           ENHANCED_FILES_OUTPUT: /tmp/enhanced_files.txt
         run: |
           echo "🎯 Enhancing documentation for changed files..."
-          ./tools/docs/enhance-docs.sh -d ./apps/frontend/src/lib/logger
+          ./tools/docs/enhance-docs.sh -d ./apps/frontend/src
           echo "✅ Enhancement complete"
 
           # Show enhanced files for debugging
