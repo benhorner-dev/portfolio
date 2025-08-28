@@ -39,7 +39,7 @@ jobs:
           TYPEDOC_CONFIG: ./.config/typedoc.json
         run: |
           echo "🎯 Enhancing documentation for changed files..."
-          ./tools/docs/enhance-docs.sh
+          ./tools/docs/enhance-docs.sh -d .
           echo "✅ Enhancement complete"
 
       - name: Checkout wiki
