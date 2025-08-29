@@ -134,3 +134,5 @@ jobs:
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_STORYBOOK_TOKEN }}
           workingDir: apps/frontend
+        env:
+          NEXT_PUBLIC_POSTHOG_KEY: ${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
