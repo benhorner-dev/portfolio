@@ -33,6 +33,8 @@ export default defineConfig({
 				"src/lib/db/schema.ts",
 				"src/lib/db/types.ts",
 				"src/lib/db/errors.ts",
+				"src/flags.ts",
+				"src/app/.well-known/vercel/flags/route.ts",
 			],
 		},
 		clearMocks: true,

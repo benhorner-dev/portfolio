@@ -25,6 +25,7 @@ jobs:
     name: E2E - ${{ matrix.test-file }}
     env:
       VERCEL_ENV: "preview"
+      NEXT_PUBLIC_POSTHOG_KEY: ${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
     services:
       redis:
         image: redis:7-alpine
@@ -133,3 +134,5 @@ jobs:
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_STORYBOOK_TOKEN }}
           workingDir: apps/frontend
+        env:
+          NEXT_PUBLIC_POSTHOG_KEY: ${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}

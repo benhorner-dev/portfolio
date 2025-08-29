@@ -13,7 +13,10 @@
 				"NEXT_RUNTIME",
 				"SENTRY_DEBUG",
 				"LOG_LEVEL",
-				"NODE_ENV"
+				"NODE_ENV",
+				"NEXT_PUBLIC_POSTHOG_KEY",
+				"NEXT_PUBLIC_POSTHOG_PROJECT_ID",
+				"NEXT_PUBLIC_POSTHOG_HOST"
 			]
 		},
 		"check-types": {
