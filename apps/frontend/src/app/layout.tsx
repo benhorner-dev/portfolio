@@ -1,9 +1,6 @@
-import { VercelToolbar } from "@vercel/toolbar/next";
-
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Environment } from "@/lib/constants";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -25,14 +22,12 @@ export default function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	const shouldInjectToolbar = process.env.NODE_ENV === Environment.DEVELOPMENT;
 	return (
 		<html lang="en">
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
 				{children}
-				{shouldInjectToolbar && <VercelToolbar />}
 			</body>
 		</html>
 	);
