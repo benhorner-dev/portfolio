@@ -1,5 +1,4 @@
 import { withSentryConfig } from "@sentry/nextjs";
-import withVercelToolbar from "@vercel/toolbar/plugins/next";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -18,15 +17,13 @@ const nextConfig: NextConfig = {
 	skipTrailingSlashRedirect: true,
 };
 
-export default withVercelToolbar()(
-	withSentryConfig(nextConfig, {
-		org: "benhornerdev",
-		project: "portfolio",
-		authToken: process.env.SENTRY_AUTH_TOKEN,
-		silent: !process.env.CI,
-		widenClientFileUpload: true,
-		tunnelRoute: "/monitoring",
-		disableLogger: true,
-		automaticVercelMonitors: true,
-	}),
-);
+export default withSentryConfig(nextConfig, {
+	org: "benhornerdev",
+	project: "portfolio",
+	authToken: process.env.SENTRY_AUTH_TOKEN,
+	silent: !process.env.CI,
+	widenClientFileUpload: true,
+	tunnelRoute: "/monitoring",
+	disableLogger: true,
+	automaticVercelMonitors: true,
+});
