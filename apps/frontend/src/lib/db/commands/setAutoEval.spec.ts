@@ -4,7 +4,7 @@ import type {
 	NewGenerationEvaluation,
 	NewRetrievalEvaluation,
 	NewSystemEvaluations,
-} from "../types";
+} from "@/lib/db/types";
 import {
 	upsertGenerationEvaluations,
 	upsertRetrievalEvaluation,

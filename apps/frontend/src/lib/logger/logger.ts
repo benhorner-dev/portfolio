@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 import type { Logger as PinoLogger } from "pino";
-import { Environment } from "../constants";
+import { Environment } from "@/lib/constants";
 
 export interface Logger {
 	info: (msg: unknown, ...args: unknown[]) => void;

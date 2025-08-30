@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Database, DrizzleHumanEvaluationUpdateAll } from "../types";
+import type { Database, DrizzleHumanEvaluationUpdateAll } from "@/lib/db/types";
 
 import { setHumanEval } from "./setHumanEval";
 

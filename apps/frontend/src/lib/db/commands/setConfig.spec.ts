@@ -3,7 +3,7 @@ import type {
 	Database,
 	DrizzleAgentConfig,
 	DrizzleAgentConfigUpdate,
-} from "../types";
+} from "@/lib/db/types";
 import { setConfig, updateConfig, upsertConfig } from "./setConfig";
 
 // Mock the database operations

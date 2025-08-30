@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LogLevel } from "../logger";
+import { LogLevel } from "@/lib/logger";
 
 const SentryUserSchema = z.object({
 	id: z.string(),
