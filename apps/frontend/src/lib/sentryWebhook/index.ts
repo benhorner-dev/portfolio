@@ -1,8 +1,8 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { Environment } from "@/lib/constants";
 import { getLogger, LogLevel } from "@/lib/logger";
-import { Environment } from "../constants";
 import {
 	SERVER_LOGGER,
 	USE_DEV_LOGGER_TO_AVOID_INFINTE_LOOP,

@@ -16,7 +16,8 @@
 				"NODE_ENV",
 				"NEXT_PUBLIC_POSTHOG_KEY",
 				"NEXT_PUBLIC_POSTHOG_PROJECT_ID",
-				"NEXT_PUBLIC_POSTHOG_HOST"
+				"NEXT_PUBLIC_POSTHOG_HOST",
+				"CONTENT_CONFIG_PATH"
 			]
 		},
 		"check-types": {
@@ -28,7 +29,8 @@
 		},
 		"dev:fe": {
 			"persistent": true,
-			"cache": false
+			"cache": false,
+			"env": ["CONTENT_CONFIG_PATH"]
 		},
 		"test": { "env": ["DATABASE_URL"] },
 		"test:unit": {},

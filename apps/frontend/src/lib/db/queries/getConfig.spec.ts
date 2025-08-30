@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Database } from "../types";
+import type { Database } from "@/lib/db/types";
 import { getConfigWithEvaluations } from "./getConfig";
 
 // Mock the database operations

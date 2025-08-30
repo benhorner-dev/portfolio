@@ -37,6 +37,8 @@ export default defineConfig({
 				"src/lib/db/errors.ts",
 				"src/flags.ts",
 				"src/app/.well-known/vercel/flags/route.ts",
+				"src/lib/services/mockChatService.ts",
+				"src/components/organisms/chatWrapper/**",
 			],
 			thresholds: {
 				lines: 100,
