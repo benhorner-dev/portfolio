@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "@chromatic-com/playwright";
 
 test.describe("Portfolio E2E Test - Complete User Journey", () => {
 	test("should complete full user journey through hero, explore, and contact sections", async ({

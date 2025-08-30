@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "@chromatic-com/playwright";
 
 const PERFORMANCE_THRESHOLDS = {
 	LCP_MAX_MS: 2500,
