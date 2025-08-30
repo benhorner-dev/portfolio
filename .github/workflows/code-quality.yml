@@ -53,4 +53,5 @@ jobs:
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
           TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
           NEXT_PUBLIC_POSTHOG_KEY: ${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
+          CONTENT_CONFIG_PATH: "src/config/contentConfig.json"
         run: ${{ matrix.task.command }}
