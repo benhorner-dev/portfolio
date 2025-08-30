@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { expect, test, vi } from "vitest";
+import { expect, it, vi } from "vitest";
 
 const mockUseEffect = vi.fn();
 vi.mock("react", async () => {
@@ -21,7 +21,7 @@ vi.mock("next/error", () => ({
 	),
 }));
 
-test("GlobalError captures error in Sentry and renders NextError", async () => {
+it("GlobalError captures error in Sentry and renders NextError", async () => {
 	const { default: GlobalError } = await import("./global-error");
 
 	const testError = new Error("Test error message");
