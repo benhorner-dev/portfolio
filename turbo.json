@@ -29,7 +29,8 @@
 		},
 		"dev:fe": {
 			"persistent": true,
-			"cache": false
+			"cache": false,
+			"env": ["CONTENT_CONFIG_PATH"]
 		},
 		"test": { "env": ["DATABASE_URL"] },
 		"test:unit": {},
