@@ -278,7 +278,7 @@ process_file_with_tsdoc() {
         return 1
     fi
 
-    if echo "$file_path" | grep -q -E '\.(test|spec)\.(ts|tsx|js|jsx)$'; then
+    if echo "$file_path" | grep -q -E '\.(test|spec|stories)\.(ts|tsx|js|jsx)$'; then
         print_info "📝 Skipping test file: $file_path"
         return 0
     fi
