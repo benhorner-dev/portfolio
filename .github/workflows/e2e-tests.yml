@@ -81,6 +81,9 @@ jobs:
         run: ./tools/ci/wait-for-service.sh localhost 3000
       - name: Run E2E tests
         run: ./tools/ci/run-e2e-tests.sh "tests/${{ matrix.test-file }}.spec.ts"
+        env:
+          CONTENT_CONFIG_PATH: "src/config/contentConfig.json"
+
 
       - uses: actions/upload-artifact@v4
         if: always()
