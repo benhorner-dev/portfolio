@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import Image from "next/image";
+import backgroundImage from "@/public/images/hero.png";
 import { BackgroundImage } from "./backgroundImage";
 
 const meta: Meta<typeof BackgroundImage> = {
@@ -50,7 +51,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
 	args: {
-		src: "/hero.png",
+		src: backgroundImage,
 		alt: "Hero background image",
 		priority: true,
 	},
@@ -58,7 +59,7 @@ export const Default: Story = {
 
 export const WithLowPriority: Story = {
 	args: {
-		src: "/hero.png",
+		src: backgroundImage,
 		alt: "Hero background image with low priority",
 		priority: false,
 	},
@@ -66,7 +67,7 @@ export const WithLowPriority: Story = {
 
 export const CustomAltText: Story = {
 	args: {
-		src: "/hero.png",
+		src: backgroundImage,
 		alt: "A beautiful landscape with mountains and sky",
 		priority: true,
 	},
@@ -86,7 +87,7 @@ export const WithoutOverlay: Story = {
 		</div>
 	),
 	args: {
-		src: "/hero.png",
+		src: backgroundImage,
 		alt: "Hero background image without overlay",
 		priority: true,
 	},
@@ -117,7 +118,7 @@ export const InContainer: Story = {
 		),
 	],
 	args: {
-		src: "/hero.png",
+		src: backgroundImage,
 		alt: "Container background image",
 		priority: true,
 	},

@@ -10,7 +10,7 @@ Object.defineProperty(HTMLDivElement.prototype, "scrollTo", {
 vi.mock("@/lib/getContentConfig", () => ({
 	getContentConfig: vi.fn().mockResolvedValue({
 		background: {
-			src: "/mock-background.jpg",
+			src: "/images/hero.png",
 			alt: "Mock background",
 		},
 		hero: {
@@ -103,6 +103,23 @@ vi.mock("@/lib/getContentConfig", () => ({
 		},
 	}),
 }));
+
+vi.mock("@/public/images/hero.png", () => ({
+	default: {
+		src: "/_next/static/media/hero.hash.png",
+		height: 1080,
+		width: 1920,
+		blurDataURL:
+			"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+		blurWidth: 1,
+		blurHeight: 1,
+	},
+}));
+
+it("Home page loads successfully", async () => {
+	const { container } = render(await Home());
+	expect(container).toBeDefined();
+});
 
 it("Home page loads successfully", async () => {
 	const { container } = render(await Home());

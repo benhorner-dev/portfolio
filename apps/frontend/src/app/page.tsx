@@ -13,6 +13,7 @@ import { Footer } from "@/components/organisms/footer";
 import { Hero } from "@/components/organisms/hero";
 import { Screen } from "@/components/templates/screen";
 import { getContentConfig } from "@/lib/getContentConfig";
+import { getImageSrc } from "@/lib/utils";
 
 export const dynamic = "force-static";
 export const revalidate = false;
@@ -34,23 +35,20 @@ export async function generateMetadata(): Promise<Metadata> {
 		alternates: {
 			canonical: contentConfig.seo.canonical,
 		},
-		other: {
-			"application/ld+json": JSON.stringify({
-				"@context": contentConfig.seo.structuredData["@context"],
-				"@type": contentConfig.seo.structuredData["@type"],
-				name: contentConfig.seo.structuredData.person.name,
-				jobTitle: contentConfig.seo.structuredData.person.jobTitle,
-				description: contentConfig.seo.description,
-				url: contentConfig.seo.structuredData.person.url,
-				sameAs: contentConfig.socials.map((social) => social.href),
-			}),
-		},
 	};
 }
 
 export default async function Home() {
 	const contentConfig = await getContentConfig();
-
+	const structuredData = {
+		"@context": contentConfig.seo.structuredData["@context"],
+		"@type": contentConfig.seo.structuredData["@type"],
+		name: contentConfig.seo.structuredData.person.name,
+		jobTitle: contentConfig.seo.structuredData.person.jobTitle,
+		description: contentConfig.seo.description,
+		url: contentConfig.seo.structuredData.person.url,
+		sameAs: contentConfig.socials.map((social) => social.href),
+	};
 	const chatHeader = (
 		<ChatHeader
 			title={<TypographyH2 text={contentConfig.chat.header.title} />}
@@ -73,8 +71,13 @@ export default async function Home() {
 
 	return (
 		<>
+			<script
+				type="application/ld+json"
+				/* biome-ignore lint/security/noDangerouslySetInnerHtml: Structured data for SEO */
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+			/>
 			<BackgroundImage
-				src={contentConfig.background.src}
+				src={getImageSrc(contentConfig.background.src)}
 				alt={contentConfig.background.alt}
 			/>
 
