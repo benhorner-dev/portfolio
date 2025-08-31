@@ -72,40 +72,35 @@ export const POST = async (request: NextRequest) => {
 		}
 
 		const parsedBody = JSON.parse(body);
-		console.log("Parsed body:", parsedBody);
-		if (parsedBody.type === "url_verification") {
-			return NextResponse.json({ challenge: parsedBody.challenge });
-		}
 
 		if (
-			parsedBody.type === "event_callback" &&
-			parsedBody.event?.type === "message"
+			parsedBody.type !== "event_callback" ||
+			parsedBody.event?.type !== "message"
 		) {
-			if (
-				!parsedBody.event.subtype &&
-				!parsedBody.event.bot_id &&
-				!parsedBody.event.thread_ts
-			) {
-				const messageText = parsedBody.event.text;
-
-				const gateUpdatePattern =
-					/\*Gate <https:\/\/console\.statsig\.com\/[^|]+\|([^>]+)> updated\*/;
-				const match = messageText?.match(gateUpdatePattern);
-				if (!match) {
-					return NextResponse.json(
-						{ error: "Invalid message" },
-						{ status: 400 },
-					);
-				}
-				const gateName = match[1];
-				console.log("Gate update detected:", {
-					gateName,
-					fullText: messageText,
-					channel: parsedBody.event.channel,
-					user: parsedBody.event.user,
-				});
-			}
+			return NextResponse.json({ error: "Invalid request" }, { status: 400 });
 		}
+
+		const messageText = parsedBody.event.text;
+
+		const gateUpdatePattern =
+			/\*Gate <https:\/\/console\.statsig\.com\/[^|]+\|([^>]+)> updated\*/;
+		const match = messageText?.match(gateUpdatePattern);
+
+		if (!match || parsedBody.event.subtype !== "bot_message") {
+			return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+		}
+		const gateName = match[1];
+		const author = messageText.match(/Author: ([^)]+)/)?.[1];
+		const changes = messageText.split("\n").slice(2).join("\n"); // Everything after author line
+
+		console.log("Statsig Gate update detected:", {
+			gateName,
+			author,
+			changes,
+			botId: parsedBody.event.bot_id,
+			channel: parsedBody.event.channel,
+			timestamp: parsedBody.event.ts,
+		});
 
 		return NextResponse.json({ ok: true });
 	} catch (error) {
