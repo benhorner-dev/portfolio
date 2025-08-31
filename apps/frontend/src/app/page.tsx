@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ScreenType } from "@/app/constants";
+import { FeatureFlag, ScreenType } from "@/app/constants";
 import { BackgroundImage } from "@/components/atoms/backgroundImage";
 import { TypographyH1 } from "@/components/atoms/h1";
 import { TypographyH2 } from "@/components/atoms/h2";
@@ -12,6 +12,7 @@ import { ChatWrapper } from "@/components/organisms/chatWrapper";
 import { Footer } from "@/components/organisms/footer";
 import { Hero } from "@/components/organisms/hero";
 import { Screen } from "@/components/templates/screen";
+import { createFeatureFlag } from "@/flags";
 import { getContentConfig } from "@/lib/getContentConfig";
 import { getImageSrc } from "@/lib/utils";
 
@@ -39,6 +40,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
+	const isHeroEnabled = await createFeatureFlag(FeatureFlag.HERO)();
+	const isFooterEnabled = await createFeatureFlag(FeatureFlag.FOOTER)();
+
 	const contentConfig = await getContentConfig();
 	const structuredData = {
 		"@context": contentConfig.seo.structuredData["@context"],
@@ -82,21 +86,23 @@ export default async function Home() {
 			/>
 
 			<div className="absolute inset-0 overflow-y-scroll snap-y snap-mandatory px-4 sm:px-6 lg:px-8 scroll-smooth">
-				<Screen
-					screenType={ScreenType.FIRST}
-					screenId={contentConfig.navigation.screenTypes.first}
-				>
-					<Hero
-						header={<TypographyH1 text={contentConfig.hero.title} />}
-						body={<TypographyP text={contentConfig.hero.description} />}
-						cta={
-							<HeroCTA
-								text={contentConfig.hero.ctaButton.text}
-								middleScreenId={contentConfig.navigation.screenTypes.middle}
-							/>
-						}
-					/>
-				</Screen>
+				{isHeroEnabled && (
+					<Screen
+						screenType={ScreenType.FIRST}
+						screenId={contentConfig.navigation.screenTypes.first}
+					>
+						<Hero
+							header={<TypographyH1 text={contentConfig.hero.title} />}
+							body={<TypographyP text={contentConfig.hero.description} />}
+							cta={
+								<HeroCTA
+									text={contentConfig.hero.ctaButton.text}
+									middleScreenId={contentConfig.navigation.screenTypes.middle}
+								/>
+							}
+						/>
+					</Screen>
+				)}
 
 				<Screen
 					screenType={ScreenType.MIDDLE}
@@ -108,18 +114,20 @@ export default async function Home() {
 					/>
 				</Screen>
 
-				<Screen
-					screenType={ScreenType.FOOTER}
-					screenId={contentConfig.navigation.screenTypes.footer}
-				>
-					<Footer
-						title={<TypographyH1 text={contentConfig.footer.title} />}
-						description={
-							<TypographyP text={contentConfig.footer.description} />
-						}
-						socials={socials}
-					/>
-				</Screen>
+				{isFooterEnabled && (
+					<Screen
+						screenType={ScreenType.FOOTER}
+						screenId={contentConfig.navigation.screenTypes.footer}
+					>
+						<Footer
+							title={<TypographyH1 text={contentConfig.footer.title} />}
+							description={
+								<TypographyP text={contentConfig.footer.description} />
+							}
+							socials={socials}
+						/>
+					</Screen>
+				)}
 			</div>
 		</>
 	);

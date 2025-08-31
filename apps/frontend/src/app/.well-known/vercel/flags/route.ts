@@ -16,7 +16,12 @@ export const GET = createFlagsDiscoveryEndpoint(() => {
 		projectId: process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID,
 	});
 
-	const { identify: _, ...featureFlags } = flags;
+	const {
+		identifyPostHog: _,
+		identifyStatsig: __,
+		createFeatureFlag: ___,
+		...featureFlags
+	} = flags;
 
 	const regularProviderData = getProviderData(featureFlags);
 
