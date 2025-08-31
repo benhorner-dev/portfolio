@@ -1,1 +1,1 @@
-export { Fallback as ChatFallback } from "./fallback";
+export * from "./fallback";

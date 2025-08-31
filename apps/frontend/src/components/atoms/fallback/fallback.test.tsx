@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { Fallback } from "./fallback";
+import { Fallback } from "@/components/atoms/fallback";
 
 describe("Fallback", () => {
 	it("renders loading text", () => {
