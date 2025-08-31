@@ -79,7 +79,7 @@ export const verifyHeaders = async (request: NextRequest) => {
 	return { timestamp, signature };
 };
 
-const verifyBody = async (body: string) => {
+export const verifyBody = async (body: string) => {
 	const parsedBody = JSON.parse(body);
 
 	const requestValidation = SlackRequestSchema.safeParse(parsedBody);
