@@ -8,7 +8,13 @@ Object.defineProperty(HTMLDivElement.prototype, "scrollTo", {
 });
 
 vi.mock("@/components/organisms/chatWrapper", () => ({
-	ChatWrapper: ({ header, placeholderTexts }: any) => (
+	ChatWrapper: ({
+		header,
+		placeholderTexts,
+	}: {
+		header: React.ReactNode;
+		placeholderTexts: { default: string };
+	}) => (
 		<div data-testid="chat-wrapper">
 			{header}
 			<div data-testid="chat-placeholder">{placeholderTexts.default}</div>
