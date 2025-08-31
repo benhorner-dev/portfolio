@@ -1,7 +1,7 @@
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
 
 interface BackgroundImageProps {
-	src: string;
+	src: StaticImageData;
 	alt: string;
 	priority?: boolean;
 }
@@ -20,7 +20,8 @@ export function BackgroundImage({
 				className="object-cover"
 				priority={priority}
 				sizes="100vw"
-				quality={100}
+				quality={85}
+				placeholder="blur"
 			/>
 
 			<div className="absolute inset-0 bg-primary/40" aria-hidden="true" />

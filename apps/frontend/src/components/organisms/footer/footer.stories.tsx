@@ -47,7 +47,7 @@ export const Default: Story = {
 						key="linkedin"
 						href="https://linkedin.com"
 						alt="LinkedIn"
-						src="/images/linkedin.png"
+						src="/images/linked-in.png"
 					/>,
 				]}
 			/>
@@ -71,16 +71,10 @@ export const WithLongDescription: Story = {
 						src="/images/github.png"
 					/>,
 					<SocialLink
-						key="twitter"
-						href="https://twitter.com"
-						alt="Twitter"
-						src="/images/twitter.png"
-					/>,
-					<SocialLink
 						key="linkedin"
 						href="https://linkedin.com"
 						alt="LinkedIn"
-						src="/images/linkedin.png"
+						src="/images/linked-in.png"
 					/>,
 				]}
 			/>

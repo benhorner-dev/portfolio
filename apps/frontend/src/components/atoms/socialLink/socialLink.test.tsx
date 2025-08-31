@@ -1,6 +1,18 @@
 import { cleanup, render, screen } from "@testing-library/react";
+import type { StaticImageData } from "next/image";
 import { beforeEach, expect, it } from "vitest";
+import { ImageSrc } from "@/lib/constants";
 import { SocialLink } from "./index";
+
+const createMockImage = (src: string): StaticImageData => ({
+	src,
+	height: 64,
+	width: 64,
+	blurDataURL:
+		"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+	blurWidth: 1,
+	blurHeight: 1,
+});
 
 beforeEach(() => {
 	cleanup();
@@ -11,7 +23,8 @@ it("SocialLink renders with correct props", () => {
 		<SocialLink
 			href="https://github.com"
 			alt="GitHub"
-			src="/images/github.png"
+			src={ImageSrc.GITHUB}
+			imgGttr={() => createMockImage("/images/github.png")}
 		/>,
 	);
 
@@ -31,7 +44,8 @@ it("SocialLink applies correct CSS classes", () => {
 		<SocialLink
 			href="https://linkedin.com"
 			alt="LinkedIn"
-			src="/images/linkedin.png"
+			src={ImageSrc.LINKEDIN}
+			imgGttr={() => createMockImage("/images/linked-in.png")}
 		/>,
 	);
 
@@ -51,7 +65,8 @@ it("SocialLink handles different href protocols", () => {
 		<SocialLink
 			href="https://example.com"
 			alt="Example"
-			src="/images/example.png"
+			src={ImageSrc.GITHUB}
+			imgGttr={() => createMockImage("/images/example.png")}
 		/>,
 	);
 
@@ -64,7 +79,8 @@ it("SocialLink handles different image sources", () => {
 		<SocialLink
 			href="https://twitter.com"
 			alt="Twitter"
-			src="/images/twitter.png"
+			src={ImageSrc.GITHUB}
+			imgGttr={() => createMockImage("/images/twitter.png")}
 		/>,
 	);
 

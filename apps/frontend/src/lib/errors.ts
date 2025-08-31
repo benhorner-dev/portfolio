@@ -19,3 +19,10 @@ export class ContentConfigParseError extends ContentConfigError {
 		this.name = "ContentConfigParseError";
 	}
 }
+
+export class ImageSrcError extends ContentConfigError {
+	constructor(message: string) {
+		super(message);
+		this.name = "ImageSrcError";
+	}
+}
