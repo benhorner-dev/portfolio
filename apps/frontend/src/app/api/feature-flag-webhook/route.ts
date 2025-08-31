@@ -1,4 +1,3 @@
-import { revalidatePath } from "next/cache";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { featureFlagWebhook } from "@/lib/featureFlagWebhook";
@@ -41,7 +40,7 @@ export const POST = async (request: NextRequest) => {
 
 export const GET = async () => {
 	return NextResponse.json({
-		message: "Slack webhook endpoint is healthy",
+		message: "Feature flag webhook endpoint is healthy",
 		timestamp: new Date().toISOString(),
 	});
 };
