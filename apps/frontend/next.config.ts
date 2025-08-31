@@ -2,6 +2,9 @@ import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+	images: {
+		qualities: [85],
+	},
 	async rewrites() {
 		return [
 			{

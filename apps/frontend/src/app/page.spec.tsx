@@ -1,11 +1,39 @@
 import { render } from "@testing-library/react";
-import { expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
 import Home, { generateMetadata } from "./page";
 
 Object.defineProperty(HTMLDivElement.prototype, "scrollTo", {
 	value: vi.fn(),
 	writable: true,
 });
+
+vi.mock("@/components/organisms/chatWrapper", () => ({
+	ChatWrapper: ({
+		header,
+		placeholderTexts,
+	}: {
+		header: React.ReactNode;
+		placeholderTexts: { default: string };
+	}) => (
+		<div data-testid="chat-wrapper">
+			{header}
+			<div data-testid="chat-placeholder">{placeholderTexts.default}</div>
+		</div>
+	),
+}));
+
+vi.mock("@/components/atoms/socialLink", () => ({
+	SocialLink: ({ href, alt, children }: any) => (
+		<a href={href} data-testid="social-link">
+			{children}
+		</a>
+	),
+}));
+
+vi.mock("@/flags", () => ({
+	chatEvalFlag: vi.fn(),
+	createFeatureFlag: vi.fn(() => vi.fn().mockResolvedValue(true)),
+}));
 
 vi.mock("@/lib/getContentConfig", () => ({
 	getContentConfig: vi.fn().mockResolvedValue({
@@ -55,7 +83,7 @@ vi.mock("@/lib/getContentConfig", () => ({
 				key: "github",
 				href: "https://github.com/mock",
 				alt: "Mock GitHub",
-				src: "/mock-github.png",
+				src: "/images/github.png",
 			},
 		],
 		navigation: {
@@ -116,14 +144,26 @@ vi.mock("@/public/images/hero.png", () => ({
 	},
 }));
 
-it("Home page loads successfully", async () => {
-	const { container } = render(await Home());
-	expect(container).toBeDefined();
+beforeEach(() => {
+	vi.clearAllMocks();
 });
 
-it("Home page loads successfully", async () => {
+it("Home page renders basic structure", async () => {
 	const { container } = render(await Home());
+
 	expect(container).toBeDefined();
+	expect(container.innerHTML).toContain("Mock Hero Title");
+	expect(container.innerHTML).toContain("Mock Footer Title");
+	expect(container.innerHTML).toContain("Mock Chat Title");
+});
+
+it("Home page loads successfully with all features enabled", async () => {
+	const { container, getAllByText } = render(await Home());
+
+	expect(container).toBeDefined();
+	expect(getAllByText("Mock Hero Title")[0]).toBeInTheDocument();
+	expect(getAllByText("Mock Footer Title")[0]).toBeInTheDocument();
+	expect(getAllByText("Mock Chat Title")[0]).toBeInTheDocument();
 });
 
 it("Metadata is generated correctly", async () => {

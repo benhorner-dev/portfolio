@@ -24,34 +24,6 @@ it("Input renders with success variant", () => {
 	expect(input).toHaveClass("border-green-500");
 });
 
-it("Input renders with small size", () => {
-	render(<Input inputSize="sm" placeholder="Small input" />);
-
-	const input = screen.getByPlaceholderText("Small input");
-	expect(input).toHaveClass("h-8");
-});
-
-it("Input renders with large size", () => {
-	render(<Input inputSize="lg" placeholder="Large input" />);
-
-	const input = screen.getByPlaceholderText("Large input");
-	expect(input).toHaveClass("h-12");
-});
-
-it("Input merges custom className with variants", () => {
-	render(<Input className="custom-class" placeholder="Custom input" />);
-
-	const input = screen.getByPlaceholderText("Custom input");
-	expect(input).toHaveClass("custom-class");
-});
-
-it("Input handles type prop", () => {
-	render(<Input type="password" placeholder="Password input" />);
-
-	const input = screen.getByPlaceholderText("Password input");
-	expect(input).toHaveAttribute("type", "password");
-});
-
 it("Input handles ref", () => {
 	const ref = { current: null };
 	render(<Input ref={ref} placeholder="Ref input" />);

@@ -1,5 +1,6 @@
+import { FeatureFlag } from "@/app/constants";
 import type { ChatHeader } from "@/components/molecules/chatHeader";
-import { chatEvalFlag } from "@/flags";
+import { createFeatureFlag } from "@/flags";
 import type { ChatInput } from "@/lib/schema";
 import { ChatClientWrapper } from "./chatClientWrapper";
 
@@ -12,7 +13,7 @@ export async function ChatWrapper({
 	header,
 	placeholderTexts,
 }: ChatWrapperProps) {
-	const isChatEnabled = await chatEvalFlag();
+	const isChatEnabled = await createFeatureFlag(FeatureFlag.CHAT)();
 
 	if (!isChatEnabled) {
 		return null;

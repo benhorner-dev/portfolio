@@ -1,1 +1,1 @@
-export { ErrorFallback as ChatErrorFallback } from "./errorFallback";
+export * from "./errorFallback";

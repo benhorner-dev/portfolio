@@ -17,7 +17,9 @@
 				"NEXT_PUBLIC_POSTHOG_KEY",
 				"NEXT_PUBLIC_POSTHOG_PROJECT_ID",
 				"NEXT_PUBLIC_POSTHOG_HOST",
-				"CONTENT_CONFIG_PATH"
+				"CONTENT_CONFIG_PATH",
+				"SLACK_SIGNING_SECRET",
+				"STATSIG_SERVER_API_KEY"
 			]
 		},
 		"check-types": {
@@ -30,7 +32,7 @@
 		"dev:fe": {
 			"persistent": true,
 			"cache": false,
-			"env": ["CONTENT_CONFIG_PATH"]
+			"env": ["CONTENT_CONFIG_PATH", "STATSIG_SERVER_API_KEY"]
 		},
 		"test": { "env": ["DATABASE_URL"] },
 		"test:unit": {},

@@ -20,6 +20,7 @@
 	"dependencies": {
 		"@chromatic-com/playwright": "0.12.7",
 		"@flags-sdk/posthog": "0.2.0",
+		"@flags-sdk/statsig": "0.2.2",
 		"@neondatabase/serverless": "1.0.1",
 		"@radix-ui/react-slot": "1.2.3",
 		"@sentry/nextjs": "10.7.0",
