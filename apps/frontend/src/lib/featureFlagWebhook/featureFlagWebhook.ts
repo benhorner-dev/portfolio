@@ -1,6 +1,10 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import {
+	FeatureFlagWebhookAuthenticationError,
+	FeatureFlagWebhookValidationError,
+} from "@/lib/featureFlagWebhook/errors";
+import {
 	EnvSchema,
 	SlackHeadersSchema,
 	SlackRequestSchema,
@@ -49,9 +53,7 @@ export async function verifySlackSignature(
 	return result === 0;
 }
 
-export const featureFlagWebhook = async (request: NextRequest) => {
-	const env = EnvSchema.parse(process.env);
-
+export const verifyHeaders = async (request: NextRequest) => {
 	const headerValidation = SlackHeadersSchema.safeParse({
 		"x-slack-request-timestamp": request.headers.get(
 			"x-slack-request-timestamp",
@@ -60,13 +62,11 @@ export const featureFlagWebhook = async (request: NextRequest) => {
 	});
 
 	if (!headerValidation.success) {
-		logger.error("Invalid headers:", headerValidation.error.issues);
-		return NextResponse.json(
-			{
+		throw new FeatureFlagWebhookValidationError(
+			JSON.stringify({
 				error: "Missing required headers",
 				details: headerValidation.error.issues.map((e) => e.message),
-			},
-			{ status: 400 },
+			}),
 		);
 	}
 
@@ -74,6 +74,14 @@ export const featureFlagWebhook = async (request: NextRequest) => {
 		"x-slack-request-timestamp": timestamp,
 		"x-slack-signature": signature,
 	} = headerValidation.data;
+
+	return { timestamp, signature };
+};
+
+export const featureFlagWebhook = async (request: NextRequest) => {
+	const env = EnvSchema.parse(process.env);
+
+	const { timestamp, signature } = await verifyHeaders(request);
 	const body = await request.text();
 
 	const isValid = await verifySlackSignature(
@@ -84,22 +92,18 @@ export const featureFlagWebhook = async (request: NextRequest) => {
 	);
 
 	if (!isValid) {
-		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		throw new FeatureFlagWebhookAuthenticationError("Invalid signature");
 	}
 
 	const parsedBody = JSON.parse(body);
 
 	const requestValidation = SlackRequestSchema.safeParse(parsedBody);
 	if (!requestValidation.success) {
-		logger.error("Invalid request structure:", requestValidation.error.issues);
-		return NextResponse.json(
-			{
+		throw new FeatureFlagWebhookValidationError(
+			JSON.stringify({
 				error: "Invalid request format",
-				details: requestValidation.error.issues.map(
-					(e) => `${e.path.join(".")}: ${e.message}`,
-				),
-			},
-			{ status: 400 },
+				details: requestValidation.error.issues.map((e) => e.message),
+			}),
 		);
 	}
 
@@ -114,8 +118,12 @@ export const featureFlagWebhook = async (request: NextRequest) => {
 	const gateNameMatch = messageText.match(/\|([^>]+)>/);
 
 	if (!gateUpdatePattern.test(messageText) || !gateNameMatch) {
-		logger.warn("Message doesn't match gate update pattern:", messageText);
-		return NextResponse.json({ ok: true });
+		throw new FeatureFlagWebhookValidationError(
+			JSON.stringify({
+				error: "Invalid request format",
+				details: "Message doesn't match gate update pattern",
+			}),
+		);
 	}
 
 	const gateName = gateNameMatch[1];
@@ -131,5 +139,5 @@ export const featureFlagWebhook = async (request: NextRequest) => {
 		timestamp: validatedRequest.event.ts,
 	});
 
-	return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+	return NextResponse.json({ ok: true });
 };
