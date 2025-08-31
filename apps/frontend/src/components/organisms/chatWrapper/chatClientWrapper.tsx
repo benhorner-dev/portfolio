@@ -3,8 +3,8 @@
 import { ErrorBoundary } from "@sentry/nextjs";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
-import { ChatErrorFallback } from "@/components/atoms/errorFallback";
-import { ChatFallback } from "@/components/atoms/fallback";
+import { ErrorFallback } from "@/components/atoms/errorFallback";
+import { Fallback } from "@/components/atoms/fallback";
 import type { ChatHeader } from "@/components/molecules/chatHeader";
 import type { ChatInput } from "@/lib/schema";
 
@@ -28,8 +28,8 @@ export function ChatClientWrapper({
 	placeholderTexts,
 }: ChatClientWrapperProps) {
 	return (
-		<ErrorBoundary fallback={ChatErrorFallback}>
-			<Suspense fallback={<ChatFallback />}>
+		<ErrorBoundary fallback={ErrorFallback}>
+			<Suspense fallback={<Fallback />}>
 				<Chat header={header} placeholderTexts={placeholderTexts} />
 			</Suspense>
 		</ErrorBoundary>
