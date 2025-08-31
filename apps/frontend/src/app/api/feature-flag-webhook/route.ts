@@ -1,24 +1,38 @@
-import { createHmac } from "node:crypto";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
 
-function verifySlackSignature(
+async function verifySlackSignature(
 	body: string,
 	timestamp: string,
 	signature: string,
 	signingSecret: string,
-): boolean {
+): Promise<boolean> {
 	const currentTime = Math.floor(Date.now() / 1000);
 	if (Math.abs(currentTime - parseInt(timestamp, 10)) > 300) {
 		return false;
 	}
 
 	const baseString = `v0:${timestamp}:${body}`;
-	const hmac = createHmac("sha256", signingSecret);
-	hmac.update(baseString);
-	const computedSignature = `v0=${hmac.digest("hex")}`;
+	const encoder = new TextEncoder();
+
+	const key = await crypto.subtle.importKey(
+		"raw",
+		encoder.encode(signingSecret),
+		{ name: "HMAC", hash: "SHA-256" },
+		false,
+		["sign"],
+	);
+
+	const signatureBuffer = await crypto.subtle.sign(
+		"HMAC",
+		key,
+		encoder.encode(baseString),
+	);
+	const computedSignature = `v0=${Array.from(new Uint8Array(signatureBuffer))
+		.map((b) => b.toString(16).padStart(2, "0"))
+		.join("")}`;
 
 	if (signature.length !== computedSignature.length) return false;
 
@@ -47,7 +61,13 @@ export const POST = async (request: NextRequest) => {
 			return NextResponse.json({ error: "Missing headers" }, { status: 400 });
 		}
 
-		if (!verifySlackSignature(body, timestamp, signature, signingSecret)) {
+		const isValid = await verifySlackSignature(
+			body,
+			timestamp,
+			signature,
+			signingSecret,
+		);
+		if (!isValid) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
