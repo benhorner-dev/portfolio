@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import {
@@ -78,23 +79,7 @@ export const verifyHeaders = async (request: NextRequest) => {
 	return { timestamp, signature };
 };
 
-export const featureFlagWebhook = async (request: NextRequest) => {
-	const env = EnvSchema.parse(process.env);
-
-	const { timestamp, signature } = await verifyHeaders(request);
-	const body = await request.text();
-
-	const isValid = await verifySlackSignature(
-		body,
-		timestamp,
-		signature,
-		env.SLACK_SIGNING_SECRET,
-	);
-
-	if (!isValid) {
-		throw new FeatureFlagWebhookAuthenticationError("Invalid signature");
-	}
-
+const verifyBody = async (body: string) => {
 	const parsedBody = JSON.parse(body);
 
 	const requestValidation = SlackRequestSchema.safeParse(parsedBody);
@@ -110,7 +95,7 @@ export const featureFlagWebhook = async (request: NextRequest) => {
 	const validatedRequest = requestValidation.data;
 
 	if (validatedRequest.type === "url_verification") {
-		return NextResponse.json({ challenge: validatedRequest.challenge });
+		return validatedRequest;
 	}
 
 	const messageText = validatedRequest.event.text;
@@ -138,6 +123,34 @@ export const featureFlagWebhook = async (request: NextRequest) => {
 		channel: validatedRequest.event.channel,
 		timestamp: validatedRequest.event.ts,
 	});
+
+	return validatedRequest;
+};
+
+export const featureFlagWebhook = async (request: NextRequest) => {
+	const env = EnvSchema.parse(process.env);
+
+	const { timestamp, signature } = await verifyHeaders(request);
+	const body = await request.text();
+
+	const isValid = await verifySlackSignature(
+		body,
+		timestamp,
+		signature,
+		env.SLACK_SIGNING_SECRET,
+	);
+
+	if (!isValid) {
+		throw new FeatureFlagWebhookAuthenticationError("Invalid signature");
+	}
+
+	const validatedRequest = await verifyBody(body);
+
+	if (validatedRequest.type === "url_verification") {
+		return NextResponse.json({ challenge: validatedRequest.challenge });
+	}
+
+	revalidatePath("/");
 
 	return NextResponse.json({ ok: true });
 };

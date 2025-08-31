@@ -14,9 +14,7 @@ const logger = getLogger("feature-flag-webhook");
 
 export const POST = async (request: NextRequest) => {
 	try {
-		const resp = await featureFlagWebhook(request);
-		revalidatePath("/");
-		return resp;
+		return await featureFlagWebhook(request);
 	} catch (error) {
 		logger.error("Webhook error:", error);
 
