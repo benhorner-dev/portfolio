@@ -72,7 +72,7 @@ export const POST = async (request: NextRequest) => {
 		}
 
 		const parsedBody = JSON.parse(body);
-
+		console.log("Parsed body:", parsedBody);
 		if (parsedBody.type === "url_verification") {
 			return NextResponse.json({ challenge: parsedBody.challenge });
 		}
