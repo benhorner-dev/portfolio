@@ -72,7 +72,6 @@ export const POST = async (request: NextRequest) => {
 		}
 
 		const parsedBody = JSON.parse(body);
-		console.log("Parsed body:", parsedBody);
 
 		if (parsedBody.type === "url_verification") {
 			return NextResponse.json({ challenge: parsedBody.challenge });
@@ -87,11 +86,23 @@ export const POST = async (request: NextRequest) => {
 				!parsedBody.event.bot_id &&
 				!parsedBody.event.thread_ts
 			) {
-				console.log("New message:", {
-					text: parsedBody.event.text?.substring(0, 100),
+				const messageText = parsedBody.event.text;
+
+				const gateUpdatePattern =
+					/\*Gate <https:\/\/console\.statsig\.com\/[^|]+\|([^>]+)> updated\*/;
+				const match = messageText?.match(gateUpdatePattern);
+				if (!match) {
+					return NextResponse.json(
+						{ error: "Invalid message" },
+						{ status: 400 },
+					);
+				}
+				const gateName = match[1];
+				console.log("Gate update detected:", {
+					gateName,
+					fullText: messageText,
 					channel: parsedBody.event.channel,
 					user: parsedBody.event.user,
-					timestamp: parsedBody.event.ts,
 				});
 			}
 		}
