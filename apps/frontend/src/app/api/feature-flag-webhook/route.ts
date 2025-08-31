@@ -1,7 +1,11 @@
+import { revalidatePath } from "next/cache";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { featureFlagWebhook } from "@/lib/featureFlagWebhook";
+import {
+	FeatureFlagWebhookAuthenticationError,
+	FeatureFlagWebhookValidationError,
+} from "@/lib/featureFlagWebhook/errors";
 import { getLogger } from "@/lib/logger";
 
 export const runtime = "edge";
@@ -10,18 +14,26 @@ const logger = getLogger("feature-flag-webhook");
 
 export const POST = async (request: NextRequest) => {
 	try {
-		return await featureFlagWebhook(request);
+		const resp = await featureFlagWebhook(request);
+		revalidatePath("/");
+		return resp;
 	} catch (error) {
 		logger.error("Webhook error:", error);
-		if (error instanceof z.ZodError) {
+
+		if (error instanceof FeatureFlagWebhookValidationError) {
 			return NextResponse.json(
-				{
-					error: "Validation failed",
-					details: error.issues.map((e) => `${e.path.join(".")}: ${e.message}`),
-				},
+				{ error: "Validation failed", details: error.message },
 				{ status: 400 },
 			);
 		}
+
+		if (error instanceof FeatureFlagWebhookAuthenticationError) {
+			return NextResponse.json(
+				{ error: "Authentication failed", details: error.message },
+				{ status: 401 },
+			);
+		}
+
 		return NextResponse.json(
 			{ error: "Internal server error" },
 			{ status: 500 },
