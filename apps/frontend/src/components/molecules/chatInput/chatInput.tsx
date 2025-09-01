@@ -9,7 +9,7 @@ interface ChatInputProps {
 
 export function ChatInput({ button, input }: ChatInputProps) {
 	return (
-		<div className="bg-card/40 px-6 py-4 border-t border-border/20">
+		<div className="bg-card/40 px-6 py-4 border-t border-ctp-surface2/50 transition-all duration-300 hover:animate-terminal-glow rounded-none">
 			<div className="flex gap-3">
 				{input}
 				{button}

@@ -15,27 +15,21 @@ export function SendButton({
 		<Button
 			variant="default"
 			size="default"
-			className={`h-[44px] px-6 ${
+			className={`h-[44px] px-6 transition-all duration-300 ${
 				disabled
-					? "bg-muted text-muted-foreground cursor-not-allowed"
-					: "bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 cursor-pointer"
+					? "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
+					: "bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-105 cursor-pointer animate-terminal-glow hover:animate-text-glow ring-2 ring-accent/30 hover:ring-accent/60"
 			} ${className}`}
 			onClick={onClick}
 			disabled={disabled}
 		>
 			<svg
 				className="w-5 h-5"
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
+				fill="currentColor"
+				viewBox="0 0 511.763 511.763"
 				aria-hidden="true"
 			>
-				<path
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					strokeWidth={2}
-					d="M22 2L11 13M22 2l-7 20-4-9-4 20-7z"
-				/>
+				<path d="M511.716,9.802c-0.107-0.853-0.213-1.707-0.533-2.56c-0.107-0.32-0.213-0.747-0.32-1.067 c-0.533-1.173-1.28-2.24-2.133-3.2c-0.96-0.853-2.027-1.6-3.2-2.133c-0.32-0.107-0.747-0.32-1.067-0.32 c-0.853-0.213-1.707-0.427-2.56-0.427c-0.427,0-0.747,0-1.173,0c-0.96,0-2.027,0.213-2.987,0.533 c-0.213,0.107-0.427,0.107-0.64,0.213h-0.107L6.436,213.962c-5.44,2.347-7.893,8.64-5.547,14.08c0.96,2.24,2.667,4.053,4.8,5.12 l178.347,94.4l94.507,178.347c1.813,3.52,5.44,5.653,9.387,5.76h0.427c4.053-0.107,7.68-2.667,9.387-6.4L510.969,14.815v-0.107 c0.107-0.213,0.107-0.427,0.213-0.64c0.32-0.96,0.533-1.92,0.533-2.987C511.716,10.655,511.822,10.228,511.716,9.802z M35.342,224.522l418.88-182.08l-264.107,264L35.342,224.522z M287.182,476.362l-81.92-154.773l264-264.107L287.182,476.362z" />
 			</svg>
 			Send
 		</Button>
