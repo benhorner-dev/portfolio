@@ -11,7 +11,7 @@ export function LogoButton({ href }: LogoButtonProps) {
 			className="flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity duration-300"
 		>
 			<svg
-				className="h-8 w-auto"
+				className="h-6 w-auto max-w-full flex-shrink"
 				viewBox="0 0 100 50"
 				fill="currentColor"
 				xmlns="http://www.w3.org/2000/svg"

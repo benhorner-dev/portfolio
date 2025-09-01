@@ -23,7 +23,7 @@ export function SocialLink({
 			href={href}
 			target="_blank"
 			rel="noopener noreferrer"
-			className="transition-transform duration-300 hover:scale-110"
+			className="transition-all duration-300 hover:scale-110 group p-2 rounded-lg bg-ctp-surface1/30 hover:bg-ctp-surface1/50 border border-ctp-surface2/30 hover:border-ctp-blue/50"
 		>
 			<Image
 				src={imgGttr(src)}
@@ -31,7 +31,7 @@ export function SocialLink({
 				width={64}
 				height={64}
 				quality={85}
-				className="w-16 h-16 object-contain"
+				className="w-16 h-16 object-contain transition-all duration-300 [filter:brightness(0)_saturate(100%)_invert(100%)_sepia(100%)_saturate(2000%)_hue-rotate(200deg)_brightness(1.1)]"
 				placeholder="blur"
 			/>
 		</Link>

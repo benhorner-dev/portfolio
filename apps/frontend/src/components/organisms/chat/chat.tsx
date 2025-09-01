@@ -60,12 +60,12 @@ export function Chat({ header, placeholderTexts }: ChatProps) {
 	);
 	return (
 		<div className="w-full max-w-2xl mx-auto px-6 py-8">
-			<div className="bg-card/30 backdrop-blur-sm rounded-2xl border border-border/20 shadow-2xl overflow-hidden">
+			<div className="bg-card/30 backdrop-blur-sm rounded-2xl border border-border/20 shadow-2xl overflow-hidden hover:animate-terminal-glow transition-all duration-500">
 				{header}
 
 				<div
 					ref={messagesContainerRef}
-					className="h-80 overflow-y-auto p-6 space-y-4 scroll-smooth"
+					className="h-80 overflow-y-auto p-6 space-y-4 scroll-smooth bg-transparent"
 				>
 					{messages.map((message) => (
 						<Message

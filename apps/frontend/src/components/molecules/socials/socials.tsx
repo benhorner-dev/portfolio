@@ -6,7 +6,7 @@ interface SocialsProps {
 
 export function Socials({ links }: SocialsProps) {
 	return (
-		<div className="mt-8 flex flex-col sm:flex-row gap-6 justify-center items-center">
+		<div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
 			{links}
 		</div>
 	);

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import Image from "next/image";
+import { BackgroundImage } from "@/components/atoms/backgroundImage";
 import backgroundImage from "@/public/images/hero.png";
-import { BackgroundImage } from "./backgroundImage";
 
 const meta: Meta<typeof BackgroundImage> = {
 	title: "Atoms/BackgroundImage",

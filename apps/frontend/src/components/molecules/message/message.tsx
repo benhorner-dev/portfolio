@@ -18,16 +18,18 @@ export function Message({
 	onQuickReply,
 	isTyping,
 }: MessageProps) {
-	const className = `w-full justify-start text-xs ${
+	const className = `w-full justify-start text-xs transition-all duration-300 ${
 		isTyping
-			? "bg-card/20 text-muted-foreground cursor-not-allowed"
-			: "bg-card/30 hover:bg-card/40 text-foreground hover:scale-105 cursor-pointer"
+			? "bg-card/20 text-muted-foreground cursor-not-allowed opacity-50"
+			: "bg-ctp-green/20 hover:bg-ctp-green/30 text-ctp-green hover:scale-105 cursor-pointer hover:text-ctp-green hover:ring-2 hover:ring-ctp-green/60 border border-ctp-green/30"
 	}`;
 	return (
 		<div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
 			<div
-				className={`backdrop-blur-sm rounded-2xl px-4 py-3 max-w-xs ${
-					isUser ? "bg-accent/20" : "bg-primary/20"
+				className={`terminal-frame backdrop-blur-sm rounded-2xl px-4 py-3 max-w-xs transition-all duration-300 hover:animate-terminal-glow ${
+					isUser
+						? "bg-ctp-blue/20 border-ctp-blue/40 text-ctp-blue"
+						: "bg-ctp-mauve/20 border-ctp-mauve/40 text-ctp-mauve"
 				}`}
 			>
 				<TypographyP text={text} />
