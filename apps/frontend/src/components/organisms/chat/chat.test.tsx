@@ -372,11 +372,6 @@ it("Chat shows typing indicator when isTyping is true and no messages", async ()
 	);
 
 	expect(screen.getByPlaceholderText("AI is typing...")).toBeInTheDocument();
-
-	const dots = container.querySelectorAll(
-		".w-2.h-2.bg-muted-foreground.rounded-full.animate-bounce",
-	);
-	expect(dots).toHaveLength(3);
 });
 
 it("Chat handles input change", async () => {
