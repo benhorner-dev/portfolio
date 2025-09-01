@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { FeatureFlag, ScreenType } from "@/app/constants";
-import { BackgroundImage } from "@/components/atoms/backgroundImage";
+import { Background } from "@/components/atoms/background";
 import { TypographyH1 } from "@/components/atoms/h1";
 import { TypographyH2 } from "@/components/atoms/h2";
 import { TypographyP } from "@/components/atoms/p";
@@ -14,7 +14,6 @@ import { Hero } from "@/components/organisms/hero";
 import { Screen } from "@/components/templates/screen";
 import { createFeatureFlag } from "@/flags";
 import { getContentConfig } from "@/lib/getContentConfig";
-import { getImageSrc } from "@/lib/utils";
 
 export const dynamic = "force-static";
 export const revalidate = false;
@@ -80,10 +79,7 @@ export default async function Home() {
 				/* biome-ignore lint/security/noDangerouslySetInnerHtml: Structured data for SEO */
 				dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
 			/>
-			<BackgroundImage
-				src={getImageSrc(contentConfig.background.src)}
-				alt={contentConfig.background.alt}
-			/>
+			<Background />
 
 			<div className="absolute inset-0 overflow-y-scroll snap-y snap-mandatory px-4 sm:px-6 lg:px-8 scroll-smooth">
 				{isHeroEnabled && (
