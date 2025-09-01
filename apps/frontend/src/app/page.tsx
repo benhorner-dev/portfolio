@@ -81,7 +81,7 @@ export default async function Home() {
 			/>
 			<Background />
 
-			<div className="absolute inset-0 overflow-y-scroll snap-y snap-mandatory px-4 sm:px-6 lg:px-8 scroll-smooth">
+			<div className="fixed inset-0 w-screen h-screen overflow-y-auto snap-y snap-mandatory px-2 sm:px-4 lg:px-6 xl:px-8 scroll-smooth">
 				{isHeroEnabled && (
 					<Screen
 						screenType={ScreenType.FIRST}
