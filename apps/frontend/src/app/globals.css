@@ -302,6 +302,61 @@
 	text-shadow: 0 0 5px var(--ctp-green);
 }
 
+/* Error page specific animations */
+@keyframes error-pulse {
+	0%,
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.8;
+		transform: scale(1.02);
+	}
+}
+
+.animate-error-pulse {
+	animation: error-pulse 2s ease-in-out infinite;
+}
+
+@keyframes error-shake {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	10%,
+	30%,
+	50%,
+	70%,
+	90% {
+		transform: translateX(-2px);
+	}
+	20%,
+	40%,
+	60%,
+	80% {
+		transform: translateX(2px);
+	}
+}
+
+.animate-error-shake {
+	animation: error-shake 0.5s ease-in-out;
+}
+
+@keyframes terminal-flicker {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.95;
+	}
+}
+
+.animate-terminal-flicker {
+	animation: terminal-flicker 0.1s infinite;
+}
+
 /* Unix-style borders and frames */
 .terminal-frame {
 	border: 1px solid var(--border);
