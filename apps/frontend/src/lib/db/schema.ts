@@ -21,6 +21,8 @@ export const users = authSchema.table("users", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	email: varchar("email", { length: 255 }).notNull().unique(),
 	name: varchar("name", { length: 255 }),
+	tokens: integer("tokens").notNull().default(0),
+	authId: varchar("auth_id", { length: 255 }).notNull().unique(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

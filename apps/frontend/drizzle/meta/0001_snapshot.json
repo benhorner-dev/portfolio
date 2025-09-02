@@ -1,0 +1,631 @@
+{
+	"id": "42f9d087-cd17-4721-8c34-4df19e7e035a",
+	"prevId": "e1a0aba4-a9ff-433a-8ece-96a967fee065",
+	"version": "7",
+	"dialect": "postgresql",
+	"tables": {
+		"eval.agent_configs": {
+			"name": "agent_configs",
+			"schema": "eval",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "varchar(255)",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"config_details": {
+					"name": "config_details",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"updated_at": {
+					"name": "updated_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"eval.generation_evaluations": {
+			"name": "generation_evaluations",
+			"schema": "eval",
+			"columns": {
+				"agent_config_id": {
+					"name": "agent_config_id",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"chat_id": {
+					"name": "chat_id",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"llm_as_judge": {
+					"name": "llm_as_judge",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"updated_at": {
+					"name": "updated_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"generated_answer_similarity": {
+					"name": "generated_answer_similarity",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"generation_evaluations_chat_id_idx": {
+					"name": "generation_evaluations_chat_id_idx",
+					"columns": [
+						{
+							"expression": "chat_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"generation_evaluations_agent_config_id_agent_configs_id_fk": {
+					"name": "generation_evaluations_agent_config_id_agent_configs_id_fk",
+					"tableFrom": "generation_evaluations",
+					"tableTo": "agent_configs",
+					"schemaTo": "eval",
+					"columnsFrom": ["agent_config_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {
+				"generation_evaluations_agent_config_id_chat_id_pk": {
+					"name": "generation_evaluations_agent_config_id_chat_id_pk",
+					"columns": ["agent_config_id", "chat_id"]
+				}
+			},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"eval.human_evaluations": {
+			"name": "human_evaluations",
+			"schema": "eval",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"config_id": {
+					"name": "config_id",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"evaluation_set": {
+					"name": "evaluation_set",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"evaluator_id": {
+					"name": "evaluator_id",
+					"type": "varchar(100)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"recommendation_quality": {
+					"name": "recommendation_quality",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"explanation_clarity": {
+					"name": "explanation_clarity",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"relevance_to_profile": {
+					"name": "relevance_to_profile",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"course_variety": {
+					"name": "course_variety",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"trustworthiness": {
+					"name": "trustworthiness",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"overall_satisfaction": {
+					"name": "overall_satisfaction",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"evaluated_at": {
+					"name": "evaluated_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {
+				"human_evaluations_config_idx": {
+					"name": "human_evaluations_config_idx",
+					"columns": [
+						{
+							"expression": "config_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"human_evaluations_config_set_idx": {
+					"name": "human_evaluations_config_set_idx",
+					"columns": [
+						{
+							"expression": "config_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						},
+						{
+							"expression": "evaluation_set",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"human_evaluations_config_id_agent_configs_id_fk": {
+					"name": "human_evaluations_config_id_agent_configs_id_fk",
+					"tableFrom": "human_evaluations",
+					"tableTo": "agent_configs",
+					"schemaTo": "eval",
+					"columnsFrom": ["config_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"config_evaluation_set_must_be_unique": {
+					"name": "config_evaluation_set_must_be_unique",
+					"nullsNotDistinct": false,
+					"columns": ["config_id", "evaluation_set"]
+				},
+				"config_evaluator_must_be_unique": {
+					"name": "config_evaluator_must_be_unique",
+					"nullsNotDistinct": false,
+					"columns": ["config_id", "evaluator_id"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {
+				"evaluation_set_must_be_1_or_2": {
+					"name": "evaluation_set_must_be_1_or_2",
+					"value": "evaluation_set IN (1, 2)"
+				},
+				"recommendation_quality_must_be_1_to_5": {
+					"name": "recommendation_quality_must_be_1_to_5",
+					"value": "recommendation_quality >= 1 AND recommendation_quality <= 5"
+				},
+				"explanation_clarity_must_be_1_to_5": {
+					"name": "explanation_clarity_must_be_1_to_5",
+					"value": "explanation_clarity >= 1 AND explanation_clarity <= 5"
+				},
+				"relevance_to_profile_must_be_1_to_5": {
+					"name": "relevance_to_profile_must_be_1_to_5",
+					"value": "relevance_to_profile >= 1 AND relevance_to_profile <= 5"
+				},
+				"course_variety_must_be_1_to_5": {
+					"name": "course_variety_must_be_1_to_5",
+					"value": "course_variety >= 1 AND course_variety <= 5"
+				},
+				"trustworthiness_must_be_1_to_5": {
+					"name": "trustworthiness_must_be_1_to_5",
+					"value": "trustworthiness >= 1 AND trustworthiness <= 5"
+				},
+				"overall_satisfaction_must_be_1_to_5": {
+					"name": "overall_satisfaction_must_be_1_to_5",
+					"value": "overall_satisfaction >= 1 AND overall_satisfaction <= 5"
+				}
+			},
+			"isRLSEnabled": false
+		},
+		"eval.retrieval_evaluations": {
+			"name": "retrieval_evaluations",
+			"schema": "eval",
+			"columns": {
+				"agent_config_id": {
+					"name": "agent_config_id",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"chat_id": {
+					"name": "chat_id",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"context_precision": {
+					"name": "context_precision",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"context_recall": {
+					"name": "context_recall",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"context_f1": {
+					"name": "context_f1",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"mrr": {
+					"name": "mrr",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"ndcg": {
+					"name": "ndcg",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"hit_rate": {
+					"name": "hit_rate",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"average_precision": {
+					"name": "average_precision",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"answer_similarity": {
+					"name": "answer_similarity",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"faithfulness": {
+					"name": "faithfulness",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"answer_relevancy": {
+					"name": "answer_relevancy",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"answer_correctness": {
+					"name": "answer_correctness",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"updated_at": {
+					"name": "updated_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {
+				"retrieval_evaluations_chat_id_idx": {
+					"name": "retrieval_evaluations_chat_id_idx",
+					"columns": [
+						{
+							"expression": "chat_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"retrieval_evaluations_agent_config_id_agent_configs_id_fk": {
+					"name": "retrieval_evaluations_agent_config_id_agent_configs_id_fk",
+					"tableFrom": "retrieval_evaluations",
+					"tableTo": "agent_configs",
+					"schemaTo": "eval",
+					"columnsFrom": ["agent_config_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {
+				"retrieval_evaluations_agent_config_id_chat_id_pk": {
+					"name": "retrieval_evaluations_agent_config_id_chat_id_pk",
+					"columns": ["agent_config_id", "chat_id"]
+				}
+			},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"eval.system_evaluations": {
+			"name": "system_evaluations",
+			"schema": "eval",
+			"columns": {
+				"agent_config_id": {
+					"name": "agent_config_id",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"chat_id": {
+					"name": "chat_id",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"total_llm_tokens": {
+					"name": "total_llm_tokens",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"total_llm_time": {
+					"name": "total_llm_time",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"llm_calls": {
+					"name": "llm_calls",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"rag_search_calls": {
+					"name": "rag_search_calls",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"total_rag_time": {
+					"name": "total_rag_time",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"total_run_time": {
+					"name": "total_run_time",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"has_error": {
+					"name": "has_error",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"has_timeout": {
+					"name": "has_timeout",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"evaluated_at": {
+					"name": "evaluated_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"updated_at": {
+					"name": "updated_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {
+				"system_metrics_chat_id_idx": {
+					"name": "system_metrics_chat_id_idx",
+					"columns": [
+						{
+							"expression": "chat_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"system_evaluations_agent_config_id_agent_configs_id_fk": {
+					"name": "system_evaluations_agent_config_id_agent_configs_id_fk",
+					"tableFrom": "system_evaluations",
+					"tableTo": "agent_configs",
+					"schemaTo": "eval",
+					"columnsFrom": ["agent_config_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {
+				"system_evaluations_agent_config_id_chat_id_pk": {
+					"name": "system_evaluations_agent_config_id_chat_id_pk",
+					"columns": ["agent_config_id", "chat_id"]
+				}
+			},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"auth.users": {
+			"name": "users",
+			"schema": "auth",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"email": {
+					"name": "email",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"tokens": {
+					"name": "tokens",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 0
+				},
+				"auth_id": {
+					"name": "auth_id",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"updated_at": {
+					"name": "updated_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"users_email_unique": {
+					"name": "users_email_unique",
+					"nullsNotDistinct": false,
+					"columns": ["email"]
+				},
+				"users_auth_id_unique": {
+					"name": "users_auth_id_unique",
+					"nullsNotDistinct": false,
+					"columns": ["auth_id"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		}
+	},
+	"enums": {},
+	"schemas": {},
+	"sequences": {},
+	"roles": {},
+	"policies": {},
+	"views": {},
+	"_meta": {
+		"columns": {},
+		"schemas": {},
+		"tables": {}
+	}
+}
