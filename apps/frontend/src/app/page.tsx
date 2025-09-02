@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { FeatureFlag, ScreenType } from "@/app/constants";
 import { Background } from "@/components/atoms/background";
+import { Fallback } from "@/components/atoms/fallback";
 import { TypographyH1 } from "@/components/atoms/h1";
-import { TypographyH2 } from "@/components/atoms/h2";
 import { TypographyP } from "@/components/atoms/p";
 import { SocialLink } from "@/components/atoms/socialLink";
-import { ChatHeader } from "@/components/molecules/chatHeader";
 import { HeroCTA } from "@/components/molecules/heroCTA";
 import { Socials } from "@/components/molecules/socials";
 import { ChatWrapper } from "@/components/organisms/chatWrapper";
@@ -14,11 +14,9 @@ import { Hero } from "@/components/organisms/hero";
 import { Screen } from "@/components/templates/screen";
 import { createFeatureFlag } from "@/flags";
 import { getContentConfig } from "@/lib/getContentConfig";
+import { identifyAnonymousUser } from "@/lib/identity/statsig";
 
-export const dynamic = "force-static";
-export const revalidate = false;
-export const fetchCache = "force-cache";
-
+export const experimental_ppr = true;
 export async function generateMetadata(): Promise<Metadata> {
 	const contentConfig = await getContentConfig();
 
@@ -39,8 +37,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-	const isHeroEnabled = await createFeatureFlag(FeatureFlag.HERO)();
-	const isFooterEnabled = await createFeatureFlag(FeatureFlag.FOOTER)();
+	const isHeroEnabled = await createFeatureFlag(
+		FeatureFlag.HERO,
+		identifyAnonymousUser,
+	)();
+	const isFooterEnabled = await createFeatureFlag(
+		FeatureFlag.FOOTER,
+		identifyAnonymousUser,
+	)();
 
 	const contentConfig = await getContentConfig();
 	const structuredData = {
@@ -52,12 +56,6 @@ export default async function Home() {
 		url: contentConfig.seo.structuredData.person.url,
 		sameAs: contentConfig.socials.map((social) => social.href),
 	};
-	const chatHeader = (
-		<ChatHeader
-			title={<TypographyH2 text={contentConfig.chat.header.title} />}
-			subtitle={<TypographyP text={contentConfig.chat.header.subtitle} />}
-		/>
-	);
 
 	const socials = (
 		<Socials
@@ -104,10 +102,9 @@ export default async function Home() {
 					screenType={ScreenType.MIDDLE}
 					screenId={contentConfig.navigation.screenTypes.middle}
 				>
-					<ChatWrapper
-						header={chatHeader}
-						placeholderTexts={contentConfig.chat.input.placeholder}
-					/>
+					<Suspense fallback={<Fallback />}>
+						<ChatWrapper />
+					</Suspense>
 				</Screen>
 
 				{isFooterEnabled && (

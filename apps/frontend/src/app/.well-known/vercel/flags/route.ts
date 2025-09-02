@@ -1,8 +1,9 @@
 import { getProviderData as getPostHogProviderData } from "@flags-sdk/posthog";
 import { createFlagsDiscoveryEndpoint, getProviderData } from "flags/next";
+import type { NextRequest } from "next/server";
 import * as flags from "@/flags";
 
-export const GET = createFlagsDiscoveryEndpoint(() => {
+export const GET = createFlagsDiscoveryEndpoint((_request) => {
 	if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {
 		throw new Error("POSTHOG_PERSONAL_API_KEY is not set");
 	}
@@ -16,12 +17,7 @@ export const GET = createFlagsDiscoveryEndpoint(() => {
 		projectId: process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID,
 	});
 
-	const {
-		identifyPostHog: _,
-		identifyStatsig: __,
-		createFeatureFlag: ___,
-		...featureFlags
-	} = flags;
+	const { identifyPostHog: _, createFeatureFlag: __, ...featureFlags } = flags;
 
 	const regularProviderData = getProviderData(featureFlags);
 
@@ -29,4 +25,7 @@ export const GET = createFlagsDiscoveryEndpoint(() => {
 		...postHogProviderData,
 		...regularProviderData,
 	};
-});
+}) as unknown as (
+	request: NextRequest,
+	context: { params: Promise<Record<string, never>> },
+) => Promise<Response>;

@@ -1,8 +1,8 @@
 import { createPostHogAdapter } from "@flags-sdk/posthog";
 import { type StatsigUser, statsigAdapter } from "@flags-sdk/statsig";
-import type { Identify } from "flags";
-import { dedupe, flag } from "flags/next";
+import { flag } from "flags/next";
 import type { FeatureFlag } from "@/app/constants";
+import { identifyStatsig } from "./lib/identity/statsig";
 
 export function identifyPostHog() {
 	return {
@@ -30,15 +30,15 @@ export const chatEvalFlag = flag({
 	defaultValue: false,
 });
 
-export const identifyStatsig = dedupe((async () => ({
-	userID: "anonymous-user",
-})) satisfies Identify<StatsigUser>);
-
-export const createFeatureFlag = (key: FeatureFlag) =>
+export const createFeatureFlag = (
+	key: FeatureFlag,
+	userIdGetter: () => Promise<string | undefined>,
+) =>
 	flag<boolean, StatsigUser>({
 		key,
 		adapter: statsigAdapter.featureGate((gate) => gate.value, {
 			exposureLogging: true,
 		}),
-		identify: identifyStatsig,
+		identify: identifyStatsig(userIdGetter),
+		defaultValue: false,
 	});

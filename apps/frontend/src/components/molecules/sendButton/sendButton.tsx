@@ -1,7 +1,7 @@
 import { Button } from "@/components/atoms/button";
 
 interface SendButtonProps {
-	onClick: () => void;
+	onClick?: () => void;
 	disabled?: boolean;
 	className?: string;
 }
