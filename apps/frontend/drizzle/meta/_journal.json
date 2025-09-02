@@ -8,6 +8,13 @@
 			"when": 1756343875501,
 			"tag": "0000_Base Eval and User table",
 			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1756856364060,
+			"tag": "0001_Add tokens and authId to users table",
+			"breakpoints": true
 		}
 	]
 }
