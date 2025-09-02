@@ -1,7 +1,12 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
+const isStorybook = process.env.STORYBOOK === "true";
+
 const nextConfig: NextConfig = {
+	experimental: {
+		ppr: isStorybook ? undefined : "incremental",
+	},
 	images: {
 		qualities: [85],
 	},
