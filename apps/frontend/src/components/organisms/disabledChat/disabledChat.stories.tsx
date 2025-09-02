@@ -141,7 +141,7 @@ export const WithMinimalOverlay: Story = {
 				title={<TypographyH2 text="Login" />}
 				description={<TypographyP text="Sign in to chat" />}
 				loginButton={
-					<Button variant="default" size="md">
+					<Button variant="default" size="lg">
 						Sign In
 					</Button>
 				}
