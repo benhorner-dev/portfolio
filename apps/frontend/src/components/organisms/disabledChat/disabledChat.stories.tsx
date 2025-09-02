@@ -46,6 +46,10 @@ export const Default: Story = {
 				subtitle={<TypographyP text="Please log in to start chatting" />}
 			/>
 		),
+		placeholderTexts: {
+			default: "Type your message here...",
+			typing: "Something went wrong",
+		},
 		overlay: (
 			<LoginOverlay
 				title={<TypographyH2 text="Authentication Required" />}
@@ -70,6 +74,10 @@ export const WithCustomPlaceholders: Story = {
 				subtitle={<TypographyP text="Get help from our support team" />}
 			/>
 		),
+		placeholderTexts: {
+			default: "Ask us anything...",
+			typing: "Agent is typing...",
+		},
 		overlay: (
 			<LoginOverlay
 				title={<TypographyH2 text="Login Required" />}
@@ -96,6 +104,10 @@ export const WithLongHeader: Story = {
 				}
 			/>
 		),
+		placeholderTexts: {
+			default: "Describe your technical issue here...",
+			typing: "Support agent is analyzing your request...",
+		},
 		overlay: (
 			<LoginOverlay
 				title={<TypographyH2 text="Account Verification Needed" />}
@@ -120,12 +132,16 @@ export const WithMinimalOverlay: Story = {
 				subtitle={<TypographyP text="Need assistance?" />}
 			/>
 		),
+		placeholderTexts: {
+			default: "Type here...",
+			typing: "Thinking...",
+		},
 		overlay: (
 			<LoginOverlay
 				title={<TypographyH2 text="Login" />}
 				description={<TypographyP text="Sign in to chat" />}
 				loginButton={
-					<Button variant="default" size="lg">
+					<Button variant="default" size="md">
 						Sign In
 					</Button>
 				}
@@ -142,6 +158,10 @@ export const WithDifferentButtonStyle: Story = {
 				subtitle={<TypographyP text="Exclusive chat for premium members" />}
 			/>
 		),
+		placeholderTexts: {
+			default: "Message our premium support team...",
+			typing: "Premium agent is responding...",
+		},
 		overlay: (
 			<LoginOverlay
 				title={<TypographyH2 text="Premium Access Required" />}
@@ -166,6 +186,10 @@ export const WithErrorState: Story = {
 				subtitle={<TypographyP text="Currently experiencing issues" />}
 			/>
 		),
+		placeholderTexts: {
+			default: "Chat temporarily unavailable...",
+			typing: "System is recovering...",
+		},
 		overlay: (
 			<LoginOverlay
 				title={<TypographyH2 text="Service Unavailable" />}
