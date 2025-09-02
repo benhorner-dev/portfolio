@@ -46,11 +46,6 @@ export const Default: Story = {
 				subtitle={<TypographyP text="Please log in to start chatting" />}
 			/>
 		),
-		placeholderTexts: {
-			default: "Type your message here...",
-			thinking: "Thinking...",
-			error: "Something went wrong",
-		},
 		overlay: (
 			<LoginOverlay
 				title={<TypographyH2 text="Authentication Required" />}
@@ -75,11 +70,6 @@ export const WithCustomPlaceholders: Story = {
 				subtitle={<TypographyP text="Get help from our support team" />}
 			/>
 		),
-		placeholderTexts: {
-			default: "Ask us anything...",
-			thinking: "Agent is typing...",
-			error: "Connection lost",
-		},
 		overlay: (
 			<LoginOverlay
 				title={<TypographyH2 text="Login Required" />}
@@ -106,11 +96,6 @@ export const WithLongHeader: Story = {
 				}
 			/>
 		),
-		placeholderTexts: {
-			default: "Describe your technical issue here...",
-			thinking: "Support agent is analyzing your request...",
-			error: "Unable to connect to support",
-		},
 		overlay: (
 			<LoginOverlay
 				title={<TypographyH2 text="Account Verification Needed" />}
@@ -135,17 +120,12 @@ export const WithMinimalOverlay: Story = {
 				subtitle={<TypographyP text="Need assistance?" />}
 			/>
 		),
-		placeholderTexts: {
-			default: "Type here...",
-			thinking: "Thinking...",
-			error: "Error",
-		},
 		overlay: (
 			<LoginOverlay
 				title={<TypographyH2 text="Login" />}
 				description={<TypographyP text="Sign in to chat" />}
 				loginButton={
-					<Button variant="default" size="md">
+					<Button variant="default" size="lg">
 						Sign In
 					</Button>
 				}
@@ -162,11 +142,6 @@ export const WithDifferentButtonStyle: Story = {
 				subtitle={<TypographyP text="Exclusive chat for premium members" />}
 			/>
 		),
-		placeholderTexts: {
-			default: "Message our premium support team...",
-			thinking: "Premium agent is responding...",
-			error: "Premium support unavailable",
-		},
 		overlay: (
 			<LoginOverlay
 				title={<TypographyH2 text="Premium Access Required" />}
@@ -191,11 +166,6 @@ export const WithErrorState: Story = {
 				subtitle={<TypographyP text="Currently experiencing issues" />}
 			/>
 		),
-		placeholderTexts: {
-			default: "Chat temporarily unavailable...",
-			thinking: "System is recovering...",
-			error: "Service temporarily down",
-		},
 		overlay: (
 			<LoginOverlay
 				title={<TypographyH2 text="Service Unavailable" />}
