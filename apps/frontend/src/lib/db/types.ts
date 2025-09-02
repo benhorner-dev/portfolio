@@ -8,6 +8,7 @@ import type {
 	retrievalEvaluations,
 	schema,
 	systemEvaluations,
+	users,
 } from "./schema";
 
 export type AgentConfig = InferSelectModel<typeof agentConfigs>;
@@ -29,6 +30,8 @@ export type DrizzleNewHumanEvaluation = InferInsertModel<
 	typeof humanEvaluations
 >;
 export type DrizzleAgentConfig = InferSelectModel<typeof agentConfigs>;
+export type User = InferSelectModel<typeof users>;
+export type NewUser = InferInsertModel<typeof users>;
 
 export type Database = PostgresJsDatabase<typeof schema>;
 export type ServerLessDatabase = NeonHttpDatabase<typeof schema>;
