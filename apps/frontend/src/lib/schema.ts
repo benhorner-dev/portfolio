@@ -35,10 +35,19 @@ export const ChatHeaderSchema = z.object({
 	subtitle: z.string(),
 });
 
+export const ChatLoginOverlaySchema = z.object({
+	title: z.string(),
+	description: z.string(),
+	loginButton: z.object({
+		text: z.string(),
+	}),
+});
+
 export const ChatSchema = z.object({
 	header: ChatHeaderSchema,
 	input: ChatInputSchema,
 	messages: ChatMessagesSchema,
+	loginOverlay: ChatLoginOverlaySchema,
 });
 
 export const FooterSchema = z.object({
@@ -136,6 +145,7 @@ export type Hero = z.infer<typeof HeroSchema>;
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 export type ChatMessages = z.infer<typeof ChatMessagesSchema>;
 export type ChatHeader = z.infer<typeof ChatHeaderSchema>;
+export type ChatLoginOverlay = z.infer<typeof ChatLoginOverlaySchema>;
 export type Chat = z.infer<typeof ChatSchema>;
 export type Footer = z.infer<typeof FooterSchema>;
 export type Social = z.infer<typeof SocialSchema>;

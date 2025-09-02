@@ -42,6 +42,13 @@
 					"What's your experience level?"
 				]
 			}
+		},
+		"loginOverlay": {
+			"title": "Login Required",
+			"description": "Please log in to chat with Ben about his projects, skills, or experience.",
+			"loginButton": {
+				"text": "Login to Explore"
+			}
 		}
 	},
 	"footer": {
