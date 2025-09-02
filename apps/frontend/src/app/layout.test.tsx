@@ -81,7 +81,35 @@ vi.mock("@/lib/getContentConfig", () => ({
 		}),
 }));
 
-it("layout renders and executes all code paths", async () => {
+const mockGetSession = vi.fn();
+vi.mock("@/lib/identity/auth0", () => ({
+	auth0: {
+		getSession: mockGetSession,
+	},
+}));
+
+it("layout renders when user is logged in", async () => {
+	mockGetSession.mockResolvedValue({
+		user: {
+			name: "John Doe",
+		},
+	});
+
+	const LayoutModule = await import("./layout");
+	const Layout = LayoutModule.default;
+
+	LayoutModule.metadata;
+
+	render(
+		<Layout>
+			<div>Test content</div>
+		</Layout>,
+	);
+});
+
+it("layout renders when user is not logged in", async () => {
+	mockGetSession.mockResolvedValue(null);
+
 	const LayoutModule = await import("./layout");
 	const Layout = LayoutModule.default;
 
