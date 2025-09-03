@@ -1,6 +1,7 @@
 import { expect, test } from "@chromatic-com/playwright";
 
 test.describe("Portfolio E2E Test - Complete User Journey", () => {
+	// ---------------- Unauthenticated User Tests ----------------
 	test.describe("Unauthenticated User Tests", () => {
 		test("should verify protected content is hidden when logged out", async ({
 			page,
@@ -16,6 +17,7 @@ test.describe("Portfolio E2E Test - Complete User Journey", () => {
 		});
 	});
 
+	// ---------------- Authenticated User Tests ----------------
 	test.describe("Authenticated User Tests", () => {
 		test.beforeEach(async ({ page }) => {
 			await test.step("Login with test user", async () => {
@@ -38,6 +40,7 @@ test.describe("Portfolio E2E Test - Complete User Journey", () => {
 				);
 				await page.click('button[type="submit"], button[name="submit"]');
 
+				// wait until we’re back from Auth0
 				await page.waitForURL(/^((?!auth0).)*$/);
 				await page.waitForTimeout(1000);
 			});
@@ -47,16 +50,17 @@ test.describe("Portfolio E2E Test - Complete User Journey", () => {
 			page,
 			context,
 		}) => {
+			// 1. Hero
 			await test.step("1. Verify hero section is visible and accessible", async () => {
 				await expect(page.locator("#hero")).toBeVisible();
 				await expect(page.locator("#hero h1")).toBeVisible();
 
-				const heroTitle = page.locator("#hero h1");
-				await expect(heroTitle).toContainText(
+				await expect(page.locator("#hero h1")).toContainText(
 					"Welcome to Ben Horner's portfolio",
 				);
 			});
 
+			// 2. CTA → Explore
 			await test.step("2. Test CTA button navigation to explore section", async () => {
 				const ctaButton = page.locator('a[href="#explore"] button');
 				await expect(ctaButton).toBeVisible();
@@ -64,10 +68,14 @@ test.describe("Portfolio E2E Test - Complete User Journey", () => {
 
 				await expect(page.locator("#explore")).toBeVisible();
 
-				const exploreTitle = page.locator("#explore h2");
+				// FIX: use role+name to avoid strict mode violation
+				const exploreTitle = page.getByRole("heading", {
+					name: "Explore Ben's work",
+				});
 				await expect(exploreTitle).toBeVisible();
 			});
 
+			// 3. Chat
 			await test.step("3. Test chat functionality - send message and verify typing indicator", async () => {
 				const chatInput = page.locator('input[placeholder*="Type"]');
 				await expect(chatInput).toBeVisible();
@@ -92,24 +100,21 @@ test.describe("Portfolio E2E Test - Complete User Journey", () => {
 				await expect(page.locator(".animate-bounce").first()).toBeVisible({
 					timeout: 10000,
 				});
-
-				await page.waitForTimeout(500);
 			});
 
+			// 4. Bot reply
 			await test.step("4. Wait for bot response and verify quick replies", async () => {
 				await page.waitForTimeout(4000);
-
 				await expect(page.locator("text=work!")).toBeVisible();
-
 				await expect(page.locator('input[placeholder*="Type"]')).toBeVisible();
 			});
 
+			// 5. Quick reply
 			await test.step("5. Test quick reply functionality", async () => {
 				const quickReplies = page.locator("text=Tell me about your projects");
 				await expect(quickReplies).toHaveCount(2);
 
-				const firstQuickReply = quickReplies.first();
-				await firstQuickReply.click();
+				await quickReplies.first().click();
 
 				await expect(
 					page
@@ -123,6 +128,7 @@ test.describe("Portfolio E2E Test - Complete User Journey", () => {
 				});
 			});
 
+			// 6. Enter key
 			await test.step("6. Test Enter key functionality for sending messages", async () => {
 				await page.waitForTimeout(4000);
 
@@ -135,14 +141,17 @@ test.describe("Portfolio E2E Test - Complete User Journey", () => {
 				).toBeVisible();
 			});
 
+			// 7. Contact
 			await test.step("7. Test navigation to contact section", async () => {
 				await page.locator('nav a[href="#contact"]').click();
 				await expect(page.locator("#contact")).toBeVisible();
 
-				const contactTitle = page.locator("#contact h1");
-				await expect(contactTitle).toContainText("Let's Connect");
+				await expect(page.locator("#contact h1")).toContainText(
+					"Let's Connect",
+				);
 			});
 
+			// 8. Social links
 			await test.step("8. Test social links open in new tabs", async () => {
 				const githubLink = page.locator('a[href*="github"]');
 				const linkedinLink = page.locator('a[href*="linkedin"]');
@@ -150,29 +159,26 @@ test.describe("Portfolio E2E Test - Complete User Journey", () => {
 				await expect(githubLink).toBeVisible();
 				await expect(linkedinLink).toBeVisible();
 
-				const newPagePromise = context.waitForEvent("page");
+				const githubPagePromise = context.waitForEvent("page");
 				await githubLink.click();
-				const githubPage = await newPagePromise;
-
+				const githubPage = await githubPagePromise;
 				await expect(githubPage.url()).toContain("github.com");
 				await githubPage.close();
 
 				const linkedinPagePromise = context.waitForEvent("page");
 				await linkedinLink.click();
 				const linkedinPage = await linkedinPagePromise;
-
 				await expect(linkedinPage.url()).toContain("linkedin.com");
 				await linkedinPage.close();
 			});
 
+			// 9. Logo → Hero
 			await test.step("9. Test logo button returns to hero section", async () => {
-				const logoButton = page.locator('nav a[href="#hero"]');
-				await logoButton.click();
-
-				const heroSection = page.locator("#hero");
-				await expect(heroSection).toBeVisible();
+				await page.locator('nav a[href="#hero"]').click();
+				await expect(page.locator("#hero")).toBeVisible();
 			});
 
+			// 10. Responsive
 			await test.step("10. Test responsive design on mobile viewport", async () => {
 				await page.setViewportSize({ width: 375, height: 667 });
 
@@ -183,6 +189,7 @@ test.describe("Portfolio E2E Test - Complete User Journey", () => {
 				await expect(page.locator("#explore")).toBeVisible();
 			});
 
+			// 11. Accessibility
 			await test.step("11. Test accessibility features", async () => {
 				await page.setViewportSize({ width: 1200, height: 800 });
 
@@ -199,6 +206,7 @@ test.describe("Portfolio E2E Test - Complete User Journey", () => {
 				}
 			});
 
+			// 12. Smooth scroll
 			await test.step("12. Test smooth scrolling performance", async () => {
 				const startTime = Date.now();
 
@@ -206,11 +214,10 @@ test.describe("Portfolio E2E Test - Complete User Journey", () => {
 				await expect(page.locator("#explore")).toBeVisible();
 
 				const endTime = Date.now();
-				const scrollTime = endTime - startTime;
-
-				expect(scrollTime).toBeLessThan(3000);
+				expect(endTime - startTime).toBeLessThan(3000);
 			});
 
+			// 13. Debug isTyping
 			await test.step("13. Debug: Check isTyping state", async () => {
 				await page.locator('a[href="#explore"] button').click();
 
@@ -236,8 +243,7 @@ test.describe("Portfolio E2E Test - Complete User Journey", () => {
 					await chatInput.getAttribute("placeholder"),
 				);
 
-				const typingIndicator = page.locator(".animate-bounce").first();
-				if (await typingIndicator.isVisible()) {
+				if (await page.locator(".animate-bounce").first().isVisible()) {
 					console.log("Typing indicator is visible");
 				} else {
 					console.log("Typing indicator is NOT visible");
