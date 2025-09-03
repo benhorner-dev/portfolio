@@ -36,6 +36,8 @@ jobs:
       AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
       AUTH0_SCOPE: ${{ secrets.AUTH0_SCOPE }}
       AUTH0_SECRET: ${{ secrets.AUTH0_SECRET }}
+      # secretlint-disable-next-line
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
     services:
       redis:
         image: redis:7-alpine
@@ -82,7 +84,10 @@ jobs:
         run: |
           bun install
           bun add -D wait-on
-          bunx playwright install --with-deps
+          bunx playwright install chromium --with-deps
+      - name: Set up Database
+        run: |
+          bunx turbo migrate
       - name: Make scripts executable
         run: chmod +x tools/ci/*.sh
       - name: Start server
@@ -91,6 +96,10 @@ jobs:
         run: ./tools/ci/wait-for-service.sh localhost 3000
       - name: Run E2E tests
         run: ./tools/ci/run-e2e-tests.sh "tests/${{ matrix.test-file }}.spec.ts"
+        env:
+          # secretlint-disable-next-line
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+
 
 
 
