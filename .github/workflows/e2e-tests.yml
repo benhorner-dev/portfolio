@@ -96,6 +96,16 @@ jobs:
         run: ./tools/ci/wait-for-service.sh localhost 3000
       - name: Run E2E tests
         run: ./tools/ci/run-e2e-tests.sh "tests/${{ matrix.test-file }}.spec.ts"
+        env:
+          # secretlint-disable-next-line
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+          AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
+          AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+          AUTH0_SCOPE: ${{ secrets.AUTH0_SCOPE }}
+          AUTH0_SECRET: ${{ secrets.AUTH0_SECRET }}
 
 
 
