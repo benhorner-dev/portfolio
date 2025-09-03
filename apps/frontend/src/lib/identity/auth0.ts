@@ -1,8 +1,8 @@
 import { Auth0Client } from "@auth0/nextjs-auth0/server";
-import { upsertUser } from "../db/commands/upsertUser";
-import { getDb } from "../db/utils";
-import { getLogger } from "../logger";
-import { SessionSchema } from "../schema";
+import { upsertUser } from "@/lib/db/commands/upsertUser";
+import { getDb } from "@/lib/db/utils";
+import { getLogger } from "@/lib/logger";
+import { SessionSchema } from "@/lib/schema";
 
 const logger = getLogger("auth0");
 /* v8 ignore start */
