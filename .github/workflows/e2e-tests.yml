@@ -84,7 +84,7 @@ jobs:
         run: |
           bun install
           bun add -D wait-on
-          bunx playwright install --with-deps
+          bunx playwright install chromium --with-deps
       - name: Set up Database
         run: |
           bunx turbo migrate
