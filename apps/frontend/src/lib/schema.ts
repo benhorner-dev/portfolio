@@ -116,7 +116,6 @@ export const StructuredDataSchema = z.object({
 		url: z.string(),
 	}),
 });
-
 export const SEOSchema = z.object({
 	title: z.string(),
 	description: z.string(),
@@ -139,6 +138,20 @@ export const ContentConfigSchema = z.object({
 	socials: SocialsSchema,
 	navigation: NavigationSchema,
 	seo: SEOSchema,
+});
+
+export const SessionSchema = z.object({
+	user: z
+		.object({
+			sub: z.string(),
+			email: z.email(),
+			name: z.string().optional(),
+		})
+		.transform((data) => ({
+			authId: data.sub,
+			email: data.email,
+			name: data.name,
+		})),
 });
 
 export type Hero = z.infer<typeof HeroSchema>;
