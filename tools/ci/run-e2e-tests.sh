@@ -7,7 +7,7 @@ if [ -n "$TEST_FILE" ]; then
   echo "🧪 Running E2E test: $TEST_FILE"
   echo "Running integration tests with verbose turbo output..."
   set +e
-  TURBO_LOG_VERBOSITY=2 bunx turbo test:e2e --verbosity=2 -- "$TEST_FILE"
+  TURBO_LOG_VERBOSITY=2 bunx turbo test:e2e --verbosity=2 -- "$TEST_FILE" --project="Google Chrome"
   TEST_EXIT_CODE=$?
   set -e
 else
