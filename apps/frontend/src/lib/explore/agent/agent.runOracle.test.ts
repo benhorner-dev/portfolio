@@ -20,13 +20,8 @@ vi.mock("@langchain/core/runnables", () => ({
 	},
 	RunnableSequence: {
 		from: vi.fn((sequence) => {
-			// Find the LLM in the sequence (it will be the result of bindTools)
-			// Look for the last item in the sequence which should be the bound LLM
-			const llmInSequence = sequence[sequence.length - 1];
-
 			return {
 				invoke: vi.fn().mockImplementation(async (input) => {
-					// Execute the sequence step by step to cover the RunnableLambda
 					let currentInput = input;
 					for (const step of sequence) {
 						if (step && typeof step.invoke === "function") {
@@ -41,19 +36,15 @@ vi.mock("@langchain/core/runnables", () => ({
 }));
 
 import type { LLM } from "@langchain/core/language_models/llms";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { RunnableLambda } from "@langchain/core/runnables";
 import {
 	DeterministicAgentTrigger,
 	ExecutionType,
-	PromptValues,
 } from "@/lib/explore/constants";
 import {
 	AgentGraphError,
 	TracedAgentGraphError,
 	UnexpectedAgentGraphError,
 } from "@/lib/explore/errors";
-import { getMockLLM } from "@/lib/explore/llms/mockLLM";
 import type {
 	AgentAction,
 	AgentConfig,
@@ -357,7 +348,6 @@ describe("AgentOrchestrator runOracle", () => {
 
 		orchestrator.llm = mockOracle;
 
-		// Mock the handleTriggers method directly on the instance
 		orchestrator.handleTriggers = vi
 			.fn()
 			.mockResolvedValue([
@@ -390,7 +380,6 @@ describe("AgentOrchestrator runOracle", () => {
 								args: { query: "test query" },
 							},
 						],
-						// No usage_metadata to test fallback logic
 					});
 				});
 				return {
@@ -400,14 +389,12 @@ describe("AgentOrchestrator runOracle", () => {
 			withConfig: vi.fn(() => ({
 				invoke: vi.fn().mockResolvedValue({
 					content: "thinking",
-					// No usage_metadata to test fallback logic
 				}),
 			})),
 		} as unknown as LLM;
 
 		orchestrator.llm = mockOracle;
 
-		// Mock the handleTriggers method directly on the instance
 		orchestrator.handleTriggers = vi
 			.fn()
 			.mockResolvedValue([
@@ -416,9 +403,7 @@ describe("AgentOrchestrator runOracle", () => {
 
 		const result = await orchestrator.runOracle(mockState);
 
-		// Verify that the test completed successfully
 		expect(result.intermediateSteps).toHaveLength(1);
-		// Verify that totalTokens is 0 when usage_metadata is undefined
 		expect(orchestrator.stream.update).toHaveBeenCalledWith(
 			expect.objectContaining({
 				totalTokens: 0,
@@ -454,7 +439,6 @@ describe("AgentOrchestrator runOracle", () => {
 
 		orchestrator.llm = mockOracle;
 
-		// Mock the handleTriggers method directly on the instance
 		orchestrator.handleTriggers = vi
 			.fn()
 			.mockResolvedValue([
@@ -463,9 +447,7 @@ describe("AgentOrchestrator runOracle", () => {
 
 		const result = await orchestrator.runOracle(mockState);
 
-		// Verify that the test completed successfully
 		expect(result.intermediateSteps).toHaveLength(1);
-		// Verify that totalTokens is calculated correctly (only thinking result tokens due to the bug in the logic)
 		expect(orchestrator.stream.update).toHaveBeenCalledWith(
 			expect.objectContaining({
 				totalTokens: 20,
@@ -486,7 +468,7 @@ describe("AgentOrchestrator runOracle", () => {
 								args: { query: "test query" },
 							},
 						],
-						usage_metadata: { total_tokens: 20 }, // Oracle has tokens
+						usage_metadata: { total_tokens: 20 },
 					});
 				});
 				return {
@@ -554,7 +536,7 @@ describe("AgentOrchestrator runOracle", () => {
 								args: { query: "test query" },
 							},
 						],
-						usage_metadata: { total_tokens: undefined }, // Oracle has tokens
+						usage_metadata: { total_tokens: undefined },
 					});
 				});
 				return {
@@ -610,7 +592,6 @@ describe("AgentOrchestrator runOracle", () => {
 	});
 
 	it("should parse intermediate steps", async () => {
-		// Test line 553: const result = [...(x || []), ...(y || [])];
 		const step1: ExecutionStep = {
 			executionType: "SEQUENTIAL" as any,
 			actions: [{ name: "tool1", args: {} }] as unknown as AgentAction[],
@@ -623,10 +604,8 @@ describe("AgentOrchestrator runOracle", () => {
 			results: ["result2"],
 		};
 
-		// Test the parseIntermediateSteps method directly
 		const combined = orchestrator.parseIntermediateSteps([step1], [step2]);
 
-		// Verify that the steps were combined
 		expect(combined).toHaveLength(2);
 		expect(combined[0]).toEqual(step1);
 		expect(combined[1]).toEqual(step2);
@@ -659,7 +638,6 @@ describe("AgentOrchestrator runOracle", () => {
 
 		orchestrator.llm = mockOracle;
 
-		// Mock the handleTriggers method directly on the instance
 		orchestrator.handleTriggers = vi.fn().mockResolvedValue([
 			{ name: "rag_search", description: "Search for information" },
 			{ name: "final_answer", description: "Provide final answer" },
@@ -709,7 +687,6 @@ describe("AgentOrchestrator runOracle", () => {
 
 		orchestrator.llm = mockOracle;
 
-		// Mock the handleTriggers method directly on the instance
 		orchestrator.handleTriggers = vi
 			.fn()
 			.mockResolvedValue([

@@ -3,20 +3,17 @@ import { vi } from "vitest";
 import { InterlocutorType } from "@/lib/explore/constants";
 import { Message } from "./message";
 
-// Mock the @ai-sdk/rsc module
 vi.mock("@ai-sdk/rsc", () => ({
 	readStreamableValue: vi.fn(),
 	createStreamableValue: vi.fn(),
 }));
 
-// Mock @langchain/langgraph to prevent AsyncLocalStorage issues in browser environment
 vi.mock("@langchain/langgraph", () => ({
 	StateGraph: vi.fn(),
 	END: "END",
 	START: "START",
 }));
 
-// Mock Node.js async_hooks for browser environment
 vi.mock("node:async_hooks", () => ({
 	AsyncLocalStorage: vi.fn(() => ({
 		run: vi.fn(),
@@ -24,7 +21,6 @@ vi.mock("node:async_hooks", () => ({
 	})),
 }));
 
-// Mock Redis for browser environment
 vi.mock("redis", () => ({
 	createClient: vi.fn(() => ({
 		connect: vi.fn(),
@@ -34,14 +30,12 @@ vi.mock("redis", () => ({
 	})),
 }));
 
-// Mock Buffer for browser environment
 globalThis.Buffer = globalThis.Buffer || {
 	from: vi.fn(),
 	alloc: vi.fn(),
 	isBuffer: vi.fn(() => false),
 };
 
-// Mock just the sendMessage function from useChatMessages
 vi.mock("@/lib/hooks/useChatMessages", () => ({
 	useChatMessages: vi.fn(() => ({
 		sendMessage: vi.fn(),

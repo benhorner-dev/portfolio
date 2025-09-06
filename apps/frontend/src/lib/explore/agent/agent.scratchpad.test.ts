@@ -220,10 +220,8 @@ describe("AgentOrchestrator scratchpad", () => {
 				results: ["result2"],
 			};
 
-			// Test the parseIntermediateSteps method directly
 			const combined = orchestrator.parseIntermediateSteps([step1], [step2]);
 
-			// Verify that the steps were combined
 			expect(combined).toHaveLength(2);
 			expect(combined[0]).toEqual(step1);
 			expect(combined[1]).toEqual(step2);

@@ -30,7 +30,6 @@ describe("Thoughts", () => {
 			<Thoughts thoughts={thoughts} message={mockMessage} />,
 		);
 
-		// Check that accordion structure exists for the thoughts
 		const accordionContent = container.querySelector(
 			'[data-slot="accordion-content"]',
 		);
@@ -48,7 +47,6 @@ describe("Thoughts", () => {
 			<Thoughts thoughts={thoughts} message={message} />,
 		);
 
-		// Verify the accordion structure exists for the thoughts
 		const accordionItems = container.querySelectorAll(
 			'[data-slot="accordion-item"]',
 		);
@@ -61,7 +59,6 @@ describe("Thoughts", () => {
 			<Thoughts thoughts={thoughts} message={mockMessage} />,
 		);
 
-		// Check for brain emoji in the container
 		expect(container.textContent).toContain("🧠");
 		const thoughtContainer = container.querySelector('[data-slot="accordion"]');
 		expect(thoughtContainer).toBeInTheDocument();
@@ -105,7 +102,6 @@ describe("Thoughts", () => {
 			<Thoughts thoughts={thoughts} message={mockMessage} />,
 		);
 
-		// Since content is hidden by default in accordion, check for the structure instead
 		const thoughtContainer = container.querySelector(
 			'[data-slot="accordion-content"]',
 		);
@@ -119,13 +115,11 @@ describe("Thoughts", () => {
 			<Thoughts thoughts={thoughts} message={mockMessage} />,
 		);
 
-		// Check for the structure that would contain the bullets (even if hidden)
 		const thoughtsContent = container.querySelector(
 			'[data-slot="accordion-content"]',
 		);
 		expect(thoughtsContent).toBeInTheDocument();
 
-		// Verify the accordion structure exists for the thoughts
 		const accordionItems = container.querySelectorAll(
 			'[data-slot="accordion-item"]',
 		);

@@ -330,10 +330,9 @@ describe("AgentOrchestrator runTool", () => {
 	});
 
 	it("should throw error when no actions found in runTool (empty actions array)", async () => {
-		// Set up a state where the last step has an empty actions array
 		mockState.intermediateSteps = [
 			{
-				actions: [], // Empty actions array
+				actions: [],
 				results: [""],
 			},
 		] as any;

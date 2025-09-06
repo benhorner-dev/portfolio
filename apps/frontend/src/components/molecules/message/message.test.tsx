@@ -88,7 +88,6 @@ it("Message renders without errors", () => {
 });
 
 it("Message renders with typing state", async () => {
-	// Override the useChatInput mock to return isTyping: true
 	const { useChatInput } = await import("@/lib/hooks/useChatInput");
 	vi.mocked(useChatInput).mockReturnValue({
 		inputValue: "",
@@ -110,11 +109,9 @@ it("Message renders with typing state", async () => {
 
 	expect(screen.getByText("Typing message")).toBeInTheDocument();
 
-	// Verify quick reply buttons are rendered with typing styles
 	expect(screen.getByText("Reply 1")).toBeInTheDocument();
 	expect(screen.getByText("Reply 2")).toBeInTheDocument();
 
-	// Check that the typing styles are applied to the quick reply buttons
 	expect(container.innerHTML).toContain("bg-card/20");
 	expect(container.innerHTML).toContain("text-muted-foreground");
 });

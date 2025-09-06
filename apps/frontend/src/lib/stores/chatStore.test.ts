@@ -89,10 +89,8 @@ describe("chatStore", () => {
 			thoughts: [],
 		};
 
-		// Add original message
 		useChatStore.getState().addMessages([originalMessage]);
 
-		// Update the message
 		useChatStore.getState().updateMessage("test-id", updatedMessage);
 
 		const state = useChatStore.getState();
@@ -120,13 +118,10 @@ describe("chatStore", () => {
 	it("marks message as sent and checks if message is sent", () => {
 		const messageId = "test-message-id";
 
-		// Initially message should not be sent
 		expect(useChatStore.getState().isMessageSent(messageId)).toBe(false);
 
-		// Mark message as sent
 		useChatStore.getState().markMessageAsSent(messageId);
 
-		// Now message should be marked as sent
 		expect(useChatStore.getState().isMessageSent(messageId)).toBe(true);
 	});
 
@@ -134,15 +129,12 @@ describe("chatStore", () => {
 		const messageId1 = "message-1";
 		const messageId2 = "message-2";
 
-		// Mark both messages as sent
 		useChatStore.getState().markMessageAsSent(messageId1);
 		useChatStore.getState().markMessageAsSent(messageId2);
 
-		// Both should be marked as sent
 		expect(useChatStore.getState().isMessageSent(messageId1)).toBe(true);
 		expect(useChatStore.getState().isMessageSent(messageId2)).toBe(true);
 
-		// Non-existent message should not be sent
 		expect(useChatStore.getState().isMessageSent("non-existent")).toBe(false);
 	});
 

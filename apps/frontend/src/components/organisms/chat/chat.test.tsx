@@ -3,7 +3,6 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { Chat } from "@/components/organisms/chat";
 import type { ChatMessage } from "@/lib/explore/types";
 
-// Mock timers to handle async scrollTo calls
 vi.useFakeTimers();
 
 vi.mock("@/lib/hooks/useChatInput", () => ({
@@ -18,7 +17,6 @@ vi.mock("@/lib/hooks/useChatScroll", () => ({
 	useChatScroll: vi.fn(),
 }));
 
-// Mock useChatStore hook with all needed functions
 vi.mock("@/lib/stores/chatStore", () => ({
 	useChatStore: vi.fn(() => ({
 		quickReplies: [],
@@ -33,7 +31,6 @@ vi.mock("@/lib/stores/chatStore", () => ({
 beforeEach(async () => {
 	cleanup();
 
-	// Clear any pending timers
 	vi.clearAllTimers();
 
 	const { useChatInput } = await import("@/lib/hooks/useChatInput");
@@ -537,10 +534,8 @@ it("Chat clears scroll timeout on multiple renders", async () => {
 		/>,
 	);
 
-	// First render sets timeout
 	expect(setTimeoutSpy).toHaveBeenCalled();
 
-	// Second render should clear previous timeout
 	rerender(
 		<Chat
 			header={mockHeader}
