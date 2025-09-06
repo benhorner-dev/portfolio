@@ -40,7 +40,6 @@ const config: StorybookConfig = {
 					external: [
 						...(config.build?.rollupOptions?.external || []),
 						"@langchain/langgraph",
-						"@ai-sdk/rsc",
 						"node:async_hooks",
 						"node:fs",
 						"node:crypto",
@@ -71,13 +70,13 @@ const config: StorybookConfig = {
 				},
 			};
 
-			// Provide fallbacks for externalized modules
+			// Provide fallbacks for externalized modules and mock @ai-sdk/rsc
 			config.resolve = {
 				...config.resolve,
 				alias: {
 					...config.resolve?.alias,
 					"@langchain/langgraph": false,
-					"@ai-sdk/rsc": false,
+					"@ai-sdk/rsc": require.resolve("./mocks/ai-sdk-rsc.js"),
 					"node:async_hooks": false,
 					"node:fs": false,
 					redis: false,
