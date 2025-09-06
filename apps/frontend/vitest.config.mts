@@ -44,6 +44,7 @@ export default defineConfig({
 				"src/lib/explore/tools/ragGraphSearchTool/**",
 				"src/lib/explore/maps.ts",
 				"src/lib/explore/types.ts",
+				"src/lib/explore/tools/mockRag/**",
 			],
 			thresholds: {
 				lines: 100,
