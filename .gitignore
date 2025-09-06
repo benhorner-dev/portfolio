@@ -67,3 +67,6 @@ volumes
 *storybook.log
 storybook-static
 **/build-archive.log
+
+# rag data
+yek/

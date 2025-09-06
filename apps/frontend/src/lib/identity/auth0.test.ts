@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockGetSession = vi.fn();
 const mockUpsertUser = vi.fn();
+const mockGetUserByAuthId = vi.fn();
 const mockGetDb = vi.fn();
 const mockLoggerError = vi.fn();
 
@@ -13,6 +14,10 @@ vi.doMock("@auth0/nextjs-auth0/server", () => ({
 
 vi.doMock("../db/commands/upsertUser", () => ({
 	upsertUser: mockUpsertUser,
+}));
+
+vi.doMock("../db/queries/getUser", () => ({
+	getUserByAuthId: mockGetUserByAuthId,
 }));
 
 vi.doMock("../db/utils", () => ({
@@ -67,6 +72,7 @@ describe("auth0", () => {
 				db: mockDb,
 				close: mockClose,
 			});
+			mockGetUserByAuthId.mockResolvedValue(null);
 			mockUpsertUser.mockResolvedValue({
 				id: "1",
 				authId: "auth0|123456789",
@@ -200,6 +206,7 @@ describe("auth0", () => {
 				db: mockDb,
 				close: mockClose,
 			});
+			mockGetUserByAuthId.mockResolvedValue(null);
 			mockUpsertUser.mockRejectedValue(new Error("Failed to upsert user"));
 
 			const result = await getAuth0UserId();
@@ -235,6 +242,7 @@ describe("auth0", () => {
 				db: mockDb,
 				close: mockClose,
 			});
+			mockGetUserByAuthId.mockResolvedValue(null);
 			mockUpsertUser.mockResolvedValue({
 				id: "1",
 				authId: "auth0|123456789",
@@ -278,6 +286,7 @@ describe("auth0", () => {
 				db: mockDb,
 				close: mockClose,
 			});
+			mockGetUserByAuthId.mockResolvedValue(null);
 			mockUpsertUser.mockRejectedValue(new Error("Database operation failed"));
 
 			const result = await getAuth0UserId();

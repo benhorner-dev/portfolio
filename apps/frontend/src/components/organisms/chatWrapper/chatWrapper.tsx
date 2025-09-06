@@ -7,15 +7,18 @@ import { LoginOverlay } from "@/components/molecules/loginOverlay";
 import { ChatClientWrapper } from "@/components/organisms/chatWrapper";
 import { DisabledChat } from "@/components/organisms/disabledChat";
 import { createFeatureFlag } from "@/flags";
+import { getAgentConfig } from "@/lib/explore/getAgentConfig";
 import { getContentConfig } from "@/lib/getContentConfig";
 import { getAuth0UserId } from "@/lib/identity/auth0";
 
 export async function ChatWrapper() {
-	const isChatEnabled = await createFeatureFlag(
-		FeatureFlag.CHAT,
-		getAuth0UserId,
+	const auth0UserId = await getAuth0UserId();
+	const isChatEnabled = await createFeatureFlag(FeatureFlag.CHAT, () =>
+		Promise.resolve(auth0UserId),
 	)();
 	const contentConfig = await getContentConfig();
+	const agentConfigPath = process.env.AGENT_CONFIG_PATH;
+	const agentConfig = await getAgentConfig(agentConfigPath);
 	const chatHeader = (
 		<ChatHeader
 			title={<TypographyH2 text={contentConfig.chat.header.title} />}
@@ -25,8 +28,10 @@ export async function ChatWrapper() {
 	if (isChatEnabled) {
 		return (
 			<ChatClientWrapper
+				chatId={auth0UserId}
 				header={chatHeader}
 				placeholderTexts={contentConfig.chat.input.placeholder}
+				config={agentConfig}
 			/>
 		);
 	}

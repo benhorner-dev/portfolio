@@ -3,6 +3,7 @@ import { upsertUser } from "@/lib/db/commands/upsertUser";
 import { getDb } from "@/lib/db/utils";
 import { getLogger } from "@/lib/logger";
 import { SessionSchema } from "@/lib/schema";
+import { getUserByAuthId } from "../db/queries/getUser";
 
 const logger = getLogger("auth0");
 /* v8 ignore start */
@@ -28,7 +29,10 @@ export async function getAuth0UserId(): Promise<string | undefined> {
 	}
 	const { db, close } = await getDb(uri);
 	try {
-		await upsertUser(parsedSession.data.user, db);
+		const user = await getUserByAuthId(parsedSession.data.user.authId, db);
+		if (!user) {
+			await upsertUser(parsedSession.data.user, db);
+		}
 	} catch (error) {
 		logger.error("Failed to upsert user", error);
 		return undefined;

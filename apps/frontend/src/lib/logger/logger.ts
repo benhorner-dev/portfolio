@@ -190,7 +190,7 @@ export class ServerProductionLogger extends BaseLogger {
 
 	trace(msg: unknown, ...args: unknown[]) {
 		const message = this.formatMessage(msg, args);
-		this.pinoLogger.trace(message);
+		this.pinoLogger.info(message);
 	}
 
 	child(obj?: unknown): Logger {

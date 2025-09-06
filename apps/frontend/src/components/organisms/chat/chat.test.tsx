@@ -1,6 +1,9 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { Chat } from "@/components/organisms/chat";
+import type { ChatMessage } from "@/lib/explore/types";
+
+vi.useFakeTimers();
 
 vi.mock("@/lib/hooks/useChatInput", () => ({
 	useChatInput: vi.fn(),
@@ -14,8 +17,21 @@ vi.mock("@/lib/hooks/useChatScroll", () => ({
 	useChatScroll: vi.fn(),
 }));
 
+vi.mock("@/lib/stores/chatStore", () => ({
+	useChatStore: vi.fn(() => ({
+		quickReplies: [],
+		setQuickReplies: vi.fn(),
+		addMessages: vi.fn(),
+		markMessageAsSent: vi.fn(),
+		isMessageSent: vi.fn(() => false),
+		getThoughts: vi.fn(() => []),
+	})),
+}));
+
 beforeEach(async () => {
 	cleanup();
+
+	vi.clearAllTimers();
 
 	const { useChatInput } = await import("@/lib/hooks/useChatInput");
 	const { useChatMessages } = await import("@/lib/hooks/useChatMessages");
@@ -34,8 +50,15 @@ beforeEach(async () => {
 	});
 
 	vi.mocked(useChatScroll).mockReturnValue({
-		messagesContainerRef: { current: null },
-		scrollToBottom: vi.fn(),
+		messagesContainerRef: {
+			current: {
+				scrollTo: vi.fn(),
+				scrollTop: 0,
+				scrollHeight: 100,
+				clientHeight: 50,
+			} as unknown as HTMLDivElement,
+		},
+		handleScroll: vi.fn(),
 	});
 });
 
@@ -95,24 +118,34 @@ it("Chat renders messages when messages exist", async () => {
 	const mockMessages = [
 		{
 			id: "1",
-			text: "Hello",
-			isUser: true,
-			timestamp: new Date(),
-			quickReplies: [],
+			content: "Hello",
+			type: "human",
+			timestamp: new Date().toISOString(),
+			thoughts: [],
 		},
 		{
 			id: "2",
-			text: "Hi there!",
-			isUser: false,
-			timestamp: new Date(),
-			quickReplies: ["Thanks", "Goodbye"],
+			content: "Hi there!",
+			type: "ai",
+			timestamp: new Date().toISOString(),
+			thoughts: [],
 		},
 	];
 
 	const { useChatMessages } = await import("@/lib/hooks/useChatMessages");
 	vi.mocked(useChatMessages).mockReturnValue({
-		messages: mockMessages,
+		messages: mockMessages as unknown as ChatMessage[],
 		sendMessage: vi.fn(),
+	});
+
+	const { useChatStore } = await import("@/lib/stores/chatStore");
+	vi.mocked(useChatStore).mockReturnValue({
+		quickReplies: ["Thanks", "Goodbye"],
+		setQuickReplies: vi.fn(),
+		addMessages: vi.fn(),
+		markMessageAsSent: vi.fn(),
+		isMessageSent: vi.fn(() => false),
+		getThoughts: vi.fn(() => []),
 	});
 
 	render(
@@ -130,21 +163,34 @@ it("Chat renders messages when messages exist", async () => {
 });
 
 it("Chat handles quick reply click", async () => {
-	const mockSendMessage = vi.fn();
+	const mockAddMessages = vi.fn();
 	const mockMessages = [
 		{
 			id: "1",
-			text: "Hi there!",
-			isUser: false,
-			timestamp: new Date(),
+			content: "Hi there!",
+			type: "ai",
+			timestamp: new Date().toISOString(),
+			thoughts: [],
 			quickReplies: ["Thanks", "Goodbye"],
 		},
 	];
 
 	const { useChatMessages } = await import("@/lib/hooks/useChatMessages");
 	vi.mocked(useChatMessages).mockReturnValue({
-		messages: mockMessages,
-		sendMessage: mockSendMessage,
+		messages: mockMessages as unknown as ChatMessage[],
+		sendMessage: vi.fn(),
+	});
+
+	const { useChatStore } = await import("@/lib/stores/chatStore");
+	vi.mocked(useChatStore).mockReturnValue({
+		quickReplies: [],
+		setQuickReplies: vi.fn(),
+		addMessages: mockAddMessages,
+		markMessageAsSent: vi.fn(),
+		isMessageSent: vi.fn(() => false),
+		getThoughts: vi.fn(() => []),
+		scrollPosition: 0,
+		thoughts: [],
 	});
 
 	render(
@@ -160,15 +206,26 @@ it("Chat handles quick reply click", async () => {
 	const quickReplyButton = screen.getByText("Thanks");
 	quickReplyButton.click();
 
-	expect(mockSendMessage).toHaveBeenCalledWith("Thanks");
+	expect(mockAddMessages).toHaveBeenCalledWith(
+		expect.arrayContaining([
+			expect.objectContaining({
+				content: "Thanks",
+				type: "human",
+			}),
+			expect.objectContaining({
+				content: null,
+				type: "ai",
+			}),
+		]),
+	);
 });
 
 it("Chat handles Enter key press when not typing", async () => {
-	const mockSendMessage = vi.fn();
+	const mockAddMessages = vi.fn();
 	const mockHandleSend = vi.fn(() => true);
 
 	const { useChatInput } = await import("@/lib/hooks/useChatInput");
-	const { useChatMessages } = await import("@/lib/hooks/useChatMessages");
+	const { useChatStore } = await import("@/lib/stores/chatStore");
 
 	vi.mocked(useChatInput).mockReturnValue({
 		inputValue: "test message",
@@ -177,9 +234,15 @@ it("Chat handles Enter key press when not typing", async () => {
 		handleSend: mockHandleSend,
 	});
 
-	vi.mocked(useChatMessages).mockReturnValue({
-		messages: [],
-		sendMessage: mockSendMessage,
+	vi.mocked(useChatStore).mockReturnValue({
+		quickReplies: [],
+		setQuickReplies: vi.fn(),
+		addMessages: mockAddMessages,
+		markMessageAsSent: vi.fn(),
+		isMessageSent: vi.fn(() => false),
+		getThoughts: vi.fn(() => []),
+		scrollPosition: 0,
+		thoughts: [],
 	});
 
 	render(
@@ -196,7 +259,19 @@ it("Chat handles Enter key press when not typing", async () => {
 	fireEvent.keyDown(input, { key: "Enter" });
 
 	expect(mockHandleSend).toHaveBeenCalled();
-	expect(mockSendMessage).toHaveBeenCalledWith("test message");
+	expect(mockAddMessages).toHaveBeenCalledWith(
+		expect.arrayContaining([
+			expect.objectContaining({
+				content: "test message",
+				type: "human",
+			}),
+			expect.objectContaining({
+				content: null,
+				type: "ai",
+				inputValue: "test message",
+			}),
+		]),
+	);
 });
 
 it("Chat does not handle Enter key press when typing", async () => {
@@ -272,11 +347,11 @@ it("Chat handles non-Enter key press", async () => {
 });
 
 it("Chat handles send button click", async () => {
-	const mockSendMessage = vi.fn();
+	const mockAddMessages = vi.fn();
 	const mockHandleSend = vi.fn(() => true);
 
 	const { useChatInput } = await import("@/lib/hooks/useChatInput");
-	const { useChatMessages } = await import("@/lib/hooks/useChatMessages");
+	const { useChatStore } = await import("@/lib/stores/chatStore");
 
 	vi.mocked(useChatInput).mockReturnValue({
 		inputValue: "test message",
@@ -285,9 +360,15 @@ it("Chat handles send button click", async () => {
 		handleSend: mockHandleSend,
 	});
 
-	vi.mocked(useChatMessages).mockReturnValue({
-		messages: [],
-		sendMessage: mockSendMessage,
+	vi.mocked(useChatStore).mockReturnValue({
+		quickReplies: [],
+		setQuickReplies: vi.fn(),
+		addMessages: mockAddMessages,
+		markMessageAsSent: vi.fn(),
+		isMessageSent: vi.fn(() => false),
+		getThoughts: vi.fn(() => []),
+		scrollPosition: 0,
+		thoughts: [],
 	});
 
 	render(
@@ -304,7 +385,19 @@ it("Chat handles send button click", async () => {
 	sendButton.click();
 
 	expect(mockHandleSend).toHaveBeenCalled();
-	expect(mockSendMessage).toHaveBeenCalledWith("test message");
+	expect(mockAddMessages).toHaveBeenCalledWith(
+		expect.arrayContaining([
+			expect.objectContaining({
+				content: "test message",
+				type: "human",
+			}),
+			expect.objectContaining({
+				content: null,
+				type: "ai",
+				inputValue: "test message",
+			}),
+		]),
+	);
 });
 
 it("Chat handles send button click when handleSend returns false", async () => {
@@ -361,7 +454,7 @@ it("Chat shows typing indicator when isTyping is true and no messages", async ()
 		sendMessage: vi.fn(),
 	});
 
-	const { container } = render(
+	render(
 		<Chat
 			header={mockHeader}
 			placeholderTexts={{
@@ -399,4 +492,62 @@ it("Chat handles input change", async () => {
 	fireEvent.change(input, { target: { value: "test input" } });
 
 	expect(mockHandleInputChange).toHaveBeenCalledWith("test input");
+});
+
+it("Chat clears scroll timeout on multiple renders", async () => {
+	const clearTimeoutSpy = vi.spyOn(global, "clearTimeout");
+	const setTimeoutSpy = vi.spyOn(global, "setTimeout");
+
+	const { useChatScroll } = await import("@/lib/hooks/useChatScroll");
+	const { useChatStore } = await import("@/lib/stores/chatStore");
+
+	vi.mocked(useChatScroll).mockReturnValue({
+		messagesContainerRef: {
+			current: {
+				scrollTo: vi.fn(),
+				scrollTop: 0,
+				scrollHeight: 100,
+				clientHeight: 50,
+			} as unknown as HTMLDivElement,
+		},
+		handleScroll: vi.fn(),
+	});
+
+	vi.mocked(useChatStore).mockReturnValue({
+		quickReplies: [],
+		setQuickReplies: vi.fn(),
+		addMessages: vi.fn(),
+		markMessageAsSent: vi.fn(),
+		isMessageSent: vi.fn(() => false),
+		getThoughts: vi.fn(() => []),
+		scrollPosition: 100,
+		thoughts: [],
+	});
+
+	const { rerender } = render(
+		<Chat
+			header={mockHeader}
+			placeholderTexts={{
+				default: "Type a message",
+				typing: "AI is typing...",
+			}}
+		/>,
+	);
+
+	expect(setTimeoutSpy).toHaveBeenCalled();
+
+	rerender(
+		<Chat
+			header={mockHeader}
+			placeholderTexts={{
+				default: "Type a message",
+				typing: "AI is typing...",
+			}}
+		/>,
+	);
+
+	expect(clearTimeoutSpy).toHaveBeenCalled();
+
+	clearTimeoutSpy.mockRestore();
+	setTimeoutSpy.mockRestore();
 });

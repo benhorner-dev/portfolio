@@ -25,7 +25,19 @@
 				"AUTH0_CLIENT_ID",
 				"AUTH0_CLIENT_SECRET",
 				"AUTH0_SCOPE",
-				"AUTH0_DOMAIN"
+				"AUTH0_DOMAIN",
+				"NEO4J_URI",
+				"NEO4J_PASS",
+				"NEO4J_USER",
+				"COHERE_API_KEY",
+				"TOKEN_LIMIT",
+				"AGENT_CONFIG_PATH",
+				"ALL_AGENT_CONFIG_PATH",
+				"OPENAI_API_KEY",
+				"LANGCHAIN_CALLBACKS_BACKGROUND",
+				"LANGSMITH_TRACING",
+				"LANGSMITH_API_KEY",
+				"LANGCHAIN_PROJECT"
 			]
 		},
 		"check-types": {
@@ -47,7 +59,15 @@
 				"AUTH0_CLIENT_SECRET",
 				"AUTH0_SCOPE",
 				"AUTH0_DOMAIN",
-				"DATABASE_URL"
+				"DATABASE_URL",
+				"NEO4J_URI",
+				"NEO4J_PASS",
+				"NEO4J_USER",
+				"COHERE_API_KEY",
+				"TOKEN_LIMIT",
+				"AGENT_CONFIG_PATH",
+				"ALL_AGENT_CONFIG_PATH",
+				"OPENAI_API_KEY"
 			]
 		},
 		"test": {
@@ -58,7 +78,15 @@
 				"AUTH0_CLIENT_ID",
 				"AUTH0_CLIENT_SECRET",
 				"AUTH0_SCOPE",
-				"AUTH0_DOMAIN"
+				"AUTH0_DOMAIN",
+				"NEO4J_URI",
+				"NEO4J_PASS",
+				"NEO4J_USER",
+				"COHERE_API_KEY",
+				"TOKEN_LIMIT",
+				"AGENT_CONFIG_PATH",
+				"ALL_AGENT_CONFIG_PATH",
+				"OPENAI_API_KEY"
 			]
 		},
 		"test:unit": {},
@@ -73,7 +101,15 @@
 				"AUTH0_CLIENT_SECRET",
 				"AUTH0_SCOPE",
 				"AUTH0_DOMAIN",
-				"DATABASE_URL"
+				"DATABASE_URL",
+				"NEO4J_URI",
+				"NEO4J_PASS",
+				"NEO4J_USER",
+				"COHERE_API_KEY",
+				"TOKEN_LIMIT",
+				"AGENT_CONFIG_PATH",
+				"ALL_AGENT_CONFIG_PATH",
+				"OPENAI_API_KEY"
 			]
 		},
 		"lint": {},

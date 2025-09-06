@@ -10,3 +10,5 @@ export enum ImageSrc {
 	LINKEDIN = "/images/linked-in.png",
 	GITHUB = "/images/github.png",
 }
+
+export const TOKEN_LIMIT = parseInt(process.env.TOKEN_LIMIT || "10_000", 10);

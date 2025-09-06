@@ -1,5 +1,46 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { vi } from "vitest";
+import { InterlocutorType } from "@/lib/explore/constants";
 import { Message } from "./message";
+
+vi.mock("@ai-sdk/rsc", () => ({
+	readStreamableValue: vi.fn(),
+	createStreamableValue: vi.fn(),
+}));
+
+vi.mock("@langchain/langgraph", () => ({
+	StateGraph: vi.fn(),
+	END: "END",
+	START: "START",
+}));
+
+vi.mock("node:async_hooks", () => ({
+	AsyncLocalStorage: vi.fn(() => ({
+		run: vi.fn(),
+		getStore: vi.fn(),
+	})),
+}));
+
+vi.mock("redis", () => ({
+	createClient: vi.fn(() => ({
+		connect: vi.fn(),
+		disconnect: vi.fn(),
+		get: vi.fn(),
+		set: vi.fn(),
+	})),
+}));
+
+globalThis.Buffer = globalThis.Buffer || {
+	from: vi.fn(),
+	alloc: vi.fn(),
+	isBuffer: vi.fn(() => false),
+};
+
+vi.mock("@/lib/hooks/useChatMessages", () => ({
+	useChatMessages: vi.fn(() => ({
+		sendMessage: vi.fn(),
+	})),
+}));
 
 const meta: Meta<typeof Message> = {
 	title: "Molecules/Message",
@@ -8,26 +49,6 @@ const meta: Meta<typeof Message> = {
 		layout: "centered",
 	},
 	tags: ["autodocs"],
-	argTypes: {
-		msgId: {
-			control: { type: "text" },
-		},
-		text: {
-			control: { type: "text" },
-		},
-		isUser: {
-			control: { type: "boolean" },
-		},
-		quickReplies: {
-			control: { type: "object" },
-		},
-		isTyping: {
-			control: { type: "boolean" },
-		},
-		onQuickReply: {
-			action: "quickReply",
-		},
-	},
 };
 
 export default meta;
@@ -35,55 +56,66 @@ type Story = StoryObj<typeof meta>;
 
 export const UserMessage: Story = {
 	args: {
-		msgId: "1",
-		text: "Hello, how can you help me?",
-		isUser: true,
-		quickReplies: [],
-		isTyping: false,
-		onQuickReply: (reply: string) => console.log("Quick reply:", reply),
+		message: {
+			id: "1",
+			content: "Hello, how can you help me?",
+			type: InterlocutorType.HUMAN,
+			timestamp: new Date().toISOString(),
+			thoughts: [],
+			quickReplies: [],
+		},
 	},
 };
 
 export const BotMessage: Story = {
 	args: {
-		msgId: "2",
-		text: "Hi! I'm here to help you with any questions you might have.",
-		isUser: false,
-		quickReplies: [],
-		isTyping: false,
-		onQuickReply: (reply: string) => console.log("Quick reply:", reply),
+		message: {
+			id: "2",
+			content: "Hi! I'm here to help you with any questions you might have.",
+			type: InterlocutorType.AI,
+			timestamp: new Date().toISOString(),
+			thoughts: [],
+			quickReplies: [],
+		},
 	},
 };
 
 export const WithQuickReplies: Story = {
 	args: {
-		msgId: "3",
-		text: "What would you like to know about?",
-		isUser: false,
-		quickReplies: ["Product Info", "Pricing", "Support", "Contact"],
-		isTyping: false,
-		onQuickReply: (reply: string) => console.log("Quick reply:", reply),
+		message: {
+			id: "3",
+			content: "What would you like to know about?",
+			type: InterlocutorType.AI,
+			timestamp: new Date().toISOString(),
+			thoughts: [],
+			quickReplies: ["Product Info", "Pricing", "Support", "Contact"],
+		},
 	},
 };
 
 export const LongMessage: Story = {
 	args: {
-		msgId: "4",
-		text: "This is a very long message that demonstrates how the component handles extended text content. It includes multiple sentences to show the full range of message capabilities and text wrapping behavior.",
-		isUser: false,
-		quickReplies: [],
-		isTyping: false,
-		onQuickReply: (reply: string) => console.log("Quick reply:", reply),
+		message: {
+			id: "4",
+			content:
+				"This is a very long message that demonstrates how the component handles extended text content. It includes multiple sentences to show the full range of message capabilities and text wrapping behavior.",
+			type: InterlocutorType.AI,
+			timestamp: new Date().toISOString(),
+			thoughts: [],
+			quickReplies: [],
+		},
 	},
 };
 
 export const TypingMessage: Story = {
 	args: {
-		msgId: "5",
-		text: "I'm thinking...",
-		isUser: false,
-		quickReplies: [],
-		isTyping: true,
-		onQuickReply: (reply: string) => console.log("Quick reply:", reply),
+		message: {
+			id: "5",
+			content: null,
+			type: InterlocutorType.AI,
+			timestamp: new Date().toISOString(),
+			thoughts: [],
+			quickReplies: [],
+		},
 	},
 };

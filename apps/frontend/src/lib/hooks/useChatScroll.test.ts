@@ -1,54 +1,47 @@
-import { act, renderHook } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useChatScroll } from "./useChatScroll";
 
 vi.useFakeTimers();
+
+const mockSetScrollPosition = vi.fn();
+
+vi.mock("../stores/chatStore", () => ({
+	useChatStore: vi.fn(() => ({
+		setScrollPosition: mockSetScrollPosition,
+	})),
+}));
 
 describe("useChatScroll", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 	});
 
-	it("returns messagesContainerRef and scrollToBottom function", () => {
+	it("returns messagesContainerRef and handleScroll function", () => {
 		const { result } = renderHook(() => useChatScroll());
 
 		expect(result.current.messagesContainerRef).toBeDefined();
-		expect(result.current.scrollToBottom).toBeDefined();
+		expect(result.current.handleScroll).toBeDefined();
 	});
 
-	it("scrolls to bottom when scrollToBottom is called", () => {
+	it("calls setScrollPosition when handleScroll is called with valid ref", () => {
 		const { result } = renderHook(() => useChatScroll());
-		const mockScrollTo = vi.fn();
 
-		const mockElement = {
-			scrollTo: mockScrollTo,
-			scrollHeight: 1000,
-		};
+		const mockDiv = { scrollTop: 100 } as HTMLDivElement;
+		result.current.messagesContainerRef.current = mockDiv;
 
-		result.current.messagesContainerRef.current =
-			mockElement as unknown as HTMLDivElement;
+		result.current.handleScroll();
 
-		act(() => {
-			result.current.scrollToBottom();
-		});
-
-		vi.advanceTimersByTime(50);
-
-		expect(mockScrollTo).toHaveBeenCalledWith({
-			top: 1000,
-			behavior: "smooth",
-		});
+		expect(mockSetScrollPosition).toHaveBeenCalledWith(100);
 	});
 
-	it("does not scroll when ref is null", () => {
+	it("does not call setScrollPosition when ref.current is null", () => {
 		const { result } = renderHook(() => useChatScroll());
 
-		act(() => {
-			result.current.scrollToBottom();
-		});
+		result.current.messagesContainerRef.current = null;
 
-		vi.advanceTimersByTime(50);
+		result.current.handleScroll();
 
-		expect(result.current.messagesContainerRef.current).toBeNull();
+		expect(mockSetScrollPosition).not.toHaveBeenCalled();
 	});
 });
