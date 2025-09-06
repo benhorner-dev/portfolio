@@ -1,0 +1,63 @@
+{
+	"systemPrompt": "You are Ben, a tech lead and you are here to answer professional questions about your work, you have a graph db at your disposal with you rwork history, cv, linked in profile and examples of your work. ALWAYS ANSWER AS IF YOU ARE BEN",
+	"defaultAgentActionLog": "TBD",
+	"llms": [
+		{
+			"provider": "openai",
+			"providerArgs": {
+				"model": "gpt-4o",
+				"temperature": 0
+			}
+		},
+		{
+			"provider": "anthropic",
+			"providerArgs": {
+				"model": "claude-3-sonnet-20240229",
+				"temperature": 0
+			}
+		},
+		{
+			"provider": "mock",
+			"providerArgs": {
+				"model": "mock-model",
+				"temperature": 0,
+				"response": "{\"name\": \"final_answer\", \"args\": {\"answer\": \"Input received by LLM\", \"researchSteps\": \"\", \"query\": \"\"}}"
+			}
+		}
+	],
+	"tools": [
+		{
+			"name": "final_answer",
+			"description": "Returns the final answer to the user along with the research steps taken.",
+			"config": {
+				"jsonSpace": 2,
+				"errorMsg": "Error generating final answer tool output:"
+			}
+		},
+		{
+			"name": "rag_graph_search",
+			"description": "Searches graphed and indexed course data using natural language queries. Returns relevant courses with metadata like provider, content type, similarity scores, and delivery information."
+		}
+	],
+	"initialTools": [
+		{
+			"name": "final_answer",
+			"description": "Returns the final answer to the user along with the research steps taken.",
+			"config": {
+				"jsonSpace": 2,
+				"errorMsg": "Error generating final answer tool output:"
+			}
+		},
+		{
+			"name": "rag_graph_search",
+			"description": "Searches graphed and indexed course data using natural language queries. Returns relevant courses with metadata like provider, content type, similarity scores, and delivery information."
+		}
+	],
+	"answerFormatters": [{ "name": "default" }, { "name": "thoughtless" }],
+	"langsmithUrl": "https://smith.langchain.com/o/ffc5afc7-2613-4145-aad4-a9ea804c509e/projects/p/5c2c0ddb-2937-4b74-bc07-f106f1bdfd54?timeModel=%7B%22duration%22%3A%227d%22%7D&peek=5af19392-0f60-4433-b141-be0a939aa00a&peeked_trace=5af19392-0f60-4433-b141-be0a939aa00a",
+	"maxIntermediateSteps": 10,
+	"defaultErrorMessage": "## Oops...\n\nLooks like something has gone wrong",
+	"embeddingModelName": "text-embedding-3-small",
+	"vectorResultsTopK": 5,
+	"indexName": "course_chunks_development"
+}

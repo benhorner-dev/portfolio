@@ -1,0 +1,489 @@
+{
+	"dashboard": {
+		"title": {
+			"en": "Dashboard"
+		},
+		"welcome": {
+			"en": "Welcome"
+		},
+		"ctaLeadingParagraph": {
+			"en": "Ready to figure out what's next? Start your Explorer profile to discover study and career paths that actually fit you."
+		},
+		"ctaButton": {
+			"en": "Create Explorer profile"
+		},
+		"cards": [
+			{
+				"id": "nexties-explorer",
+				"title": {
+					"en": "Nexties Explorer"
+				},
+				"description": {
+					"en": "You've already started discovering what fits you. Nexties Explorer helps you go deeper and unlock even better study recommendations."
+				},
+				"icon": "explorer",
+				"iconSize": "large",
+				"iconBackground": "bg-primary-brand-ultralight",
+				"href": "/explore",
+				"backgroundClass": "bg-gradient-yellow-pink-45",
+				"order": 1
+			},
+			{
+				"id": "recommended-courses",
+				"title": {
+					"en": "Recommended Courses"
+				},
+				"description": {
+					"en": "The Nexties recommendations section is your personalised shortlist, curated courses and pathways matched to your interests, values, and goals, helping you move confidently toward what's next."
+				},
+				"icon": "dots-grid",
+				"iconSize": "small",
+				"iconBackground": "bg-primary-brand-dark",
+				"iconColor": "text-primary-brand-pink",
+				"href": "/courses",
+				"backgroundClass": "bg-primary-brand-pink",
+				"order": 2
+			},
+			{
+				"id": "study-hub",
+				"title": {
+					"en": "Study Hub"
+				},
+				"description": {
+					"en": "The Nexties Study Hub is your central workspace. A place to track your saved courses, applications, and next steps, keeping everything organised as you shape your future."
+				},
+				"icon": "book-open-02",
+				"iconSize": "small",
+				"iconBackground": "bg-primary-brand-dark",
+				"iconColor": "text-primary-brand-yellow",
+				"href": "/study-hub",
+				"backgroundClass": "bg-primary-brand-yellow",
+				"order": 3
+			}
+		]
+	},
+	"navigation": {
+		"items": [
+			{
+				"id": "home",
+				"label": {
+					"en": "Home"
+				},
+				"href": "/",
+				"icon": "home-smile",
+				"desktopOrder": 1,
+				"mobileOrder": 1,
+				"visible": true,
+				"external": false
+			},
+			{
+				"id": "explorer",
+				"label": {
+					"en": "Explorer"
+				},
+				"href": "/explore",
+				"icon": "asterisk-02",
+				"desktopOrder": 2,
+				"visible": true,
+				"external": false
+			},
+			{
+				"id": "courses",
+				"label": {
+					"en": "Courses"
+				},
+				"href": "/courses",
+				"icon": "dots-grid",
+				"desktopOrder": 3,
+				"mobileOrder": 2,
+				"visible": true,
+				"external": false
+			},
+			{
+				"id": "studyHub",
+				"label": {
+					"en": "Study Hub"
+				},
+				"href": "/study-hub",
+				"icon": "book-open-02",
+				"desktopOrder": 4,
+				"mobileOrder": 4,
+				"visible": true,
+				"external": false
+			},
+			{
+				"id": "menu",
+				"label": {
+					"en": "Menu"
+				},
+				"href": "/menu",
+				"icon": "menu-01",
+				"desktopOrder": 5,
+				"mobileOrder": 5,
+				"visible": true,
+				"external": false
+			}
+		],
+		"userMenu": {
+			"profile": {
+				"en": "Profile"
+			},
+			"settings": {
+				"en": "Settings"
+			},
+			"logout": {
+				"en": "Logout"
+			}
+		},
+		"auth": {
+			"login": {
+				"en": "Sign in"
+			},
+			"register": {
+				"en": "Register"
+			}
+		}
+	},
+	"chat": {
+		"initialMessage": {
+			"en": "Welcome! How can I help you today?"
+		},
+		"header": {
+			"en": "AI Assistant"
+		},
+		"placeHolder": {
+			"en": "Type your message..."
+		},
+		"defaultErrorMessage": {
+			"en": "## Oops...\n\nSomething went wrong. Please try again."
+		}
+	},
+	"explore": {
+		"initialMessage": {
+			"en": "Welcome to your Exploration!"
+		},
+		"header": {
+			"en": "Nexties"
+		},
+		"subHeader": {
+			"en": "Explore"
+		},
+		"placeHolder": {
+			"en": "Begin your journey here..."
+		}
+	},
+	"login": {
+		"signIn": {
+			"en": "Sign in"
+		},
+		"welcomeBack": {
+			"en": "Welcome back"
+		},
+		"initialMessage": {
+			"en": "Please sign in to continue."
+		},
+		"email": {
+			"en": "Email"
+		},
+		"password": {
+			"en": "Password"
+		},
+		"rememberMe": {
+			"en": "Remember me"
+		},
+		"forgotPassword": {
+			"en": "Forgot password?"
+		},
+		"loginError": {
+			"en": "There was an issue with your login details. Try again."
+		}
+	},
+	"signUp": {
+		"signUp": {
+			"en": "Create Account"
+		},
+		"getStarted": {
+			"en": "Get started"
+		},
+		"initialMessage": {
+			"en": "Set up your profile in a few seconds."
+		}
+	},
+	"uiFeedback": {
+		"requiredField": {
+			"en": "This field is required"
+		}
+	},
+	"activeCourses": {
+		"title": {
+			"en": "Active Courses"
+		},
+		"emptyStateTitle": {
+			"en": "No active courses"
+		},
+		"emptyStateDescription": {
+			"en": "Perhaps this could be a nice callout that active courses are linked to the Nexties profile for those that do not have any yet"
+		}
+	},
+	"courseTypes": {
+		"FREE_COURSE": {
+			"en": "Free Course"
+		},
+		"SHORT_COURSE": {
+			"en": "Short Course"
+		},
+		"MICROCREDENTIAL": {
+			"en": "Micro-Credential"
+		},
+		"POSTGRAD_CERTIFICATE": {
+			"en": "Postgraduate Certificate"
+		},
+		"MASTERS": {
+			"en": "Masters"
+		}
+	},
+	"courseDetailsPage": {
+		"deliveryMethods": {
+			"PHYSICAL": {
+				"title": {
+					"en": "In-person study"
+				},
+				"description": {
+					"en": "Face-to-face learning in a physical classroom setting"
+				}
+			},
+			"ONLINE": {
+				"title": {
+					"en": "Online study"
+				},
+				"description": {
+					"en": "Flexible online learning from anywhere"
+				}
+			},
+			"BLENDED": {
+				"title": {
+					"en": "Blended study"
+				},
+				"description": {
+					"en": "This is a mix of online learning & face-to-face sessions"
+				}
+			}
+		},
+		"allLocations": {
+			"en": "All locations"
+		},
+		"durationPrefix": {
+			"en": "It will take a total of"
+		},
+		"durationSuffix": {
+			"en": "weeks to complete this course"
+		},
+		"hoursPerWeekPrefix": {
+			"en": "This course requires"
+		},
+		"hoursPerWeekSuffix": {
+			"en": "hours per week"
+		},
+		"courseBy": {
+			"en": "A course by"
+		},
+		"sectionHeadings": {
+			"unlockAbilities": {
+				"en": "Unlock these abilities"
+			},
+			"signingUpFor": {
+				"en": "What You're Signing Up For"
+			},
+			"industryLeads": {
+				"en": "What sort of industry will this job lead to"
+			},
+			"employmentOpportunities": {
+				"en": "Future employment opportunities might be"
+			},
+			"prerequisites": {
+				"en": "What you need to know first"
+			},
+			"moreAboutProvider": {
+				"en": "More about"
+			}
+		},
+		"explorerRecommendation": {
+			"refineRecommendations": {
+				"en": "Refine recommendations"
+			},
+			"enhanceProfile": {
+				"en": "Enhance Explorer profile"
+			}
+		},
+		"relatedCoursesSection": {
+			"moreToExplore": {
+				"en": "More to explore from"
+			},
+			"moreCoursesToExplore": {
+				"en": "More {classification} courses to explore"
+			},
+			"exploreAll": {
+				"en": "Explore all"
+			}
+		}
+	},
+	"courseCard": {
+		"courseDetails": {
+			"en": "Course Details"
+		},
+		"courseLevel": {
+			"en": "level"
+		},
+		"comingSoon": {
+			"en": "Coming Soon"
+		},
+		"courses": {
+			"en": "Courses"
+		}
+	},
+	"courseCTACard": {
+		"free": {
+			"en": "FREE"
+		},
+		"incGst": {
+			"en": "inc GST"
+		},
+		"enquireInternationalPricing": {
+			"en": "Enquire about international pricing"
+		},
+		"thisCourse": {
+			"en": "This course"
+		},
+		"startsAnytime": {
+			"en": "starts anytime"
+		},
+		"starts": {
+			"en": "starts"
+		},
+		"nzqaLevelCertification": {
+			"en": "NZQA Level {level} Certification"
+		},
+		"credits": {
+			"en": "({credits} Credits)"
+		},
+		"studyLevel": {
+			"en": "Study Level"
+		},
+		"entryLevel": {
+			"en": "Entry"
+		},
+		"intermediateLevel": {
+			"en": "Advanced"
+		},
+		"advancedLevel": {
+			"en": "Post Grad"
+		},
+		"registerInterest": {
+			"en": "Register interest"
+		},
+		"bookmarkCourse": {
+			"en": "Bookmark course"
+		}
+	},
+	"courseBrowsing": {
+		"clearFilters": {
+			"en": "Clear Filters"
+		},
+		"filterCourses": {
+			"en": "Filter Courses"
+		},
+		"errorLoadingCourses": {
+			"en": "There was an error loading courses. Please try again."
+		},
+		"noCoursesFound": {
+			"en": "No courses found matching the selected filters."
+		},
+		"courses": {
+			"en": "Browse Courses"
+		},
+		"ctaTitle": {
+			"en": "Find your next with Nexties Explorer"
+		},
+		"ctaDescription": {
+			"en": "Our AI Explorer tool allows you to build a dynamic picture of your skills, goal, strengths to craft a curated selection of courses for you. "
+		},
+		"ctaButton": {
+			"en": "Start building your profile "
+		}
+	},
+	"courseFilters": {
+		"title": {
+			"en": "Filter & Search"
+		},
+		"closeFilters": {
+			"en": "Close filters"
+		},
+		"searchPlaceholder": {
+			"en": "Search by keyword"
+		},
+		"clearAllFilters": {
+			"en": "Clear all filters"
+		}
+	},
+	"providerDetailsPage": {
+		"coursesFrom": {
+			"en": "Courses from"
+		},
+		"exploreAll": {
+			"en": "Explore all"
+		},
+		"noCoursesFound": {
+			"en": "No courses found for this provider."
+		}
+	},
+	"studyHub": {
+		"title": {
+			"en": "Study Hub"
+		},
+		"backgroundAlt": {
+			"en": "Course browsing background mask"
+		},
+		"tabs": {
+			"bookmarkedCourses": {
+				"en": "Bookmarked Courses"
+			},
+			"applicationsInProgress": {
+				"en": "Applications in Progress"
+			},
+			"activeCourses": {
+				"en": "Active Courses"
+			}
+		},
+		"emptyStates": {
+			"noActiveCourses": {
+				"en": "No active courses... yet"
+			},
+			"noApplicationsInProgress": {
+				"en": "No applications in progress... yet"
+			},
+			"noBookmarkedCourses": {
+				"en": "No bookmarked courses... yet"
+			}
+		}
+	},
+	"recommendations": {
+		"title": {
+			"en": "Courses picked just for you"
+		},
+		"enhanceYourProfile": {
+			"en": "Enhance your profile"
+		},
+		"refreshRecommendations": {
+			"en": "Refresh course picks"
+		},
+		"saveIt": {
+			"en": "Save it"
+		},
+		"notForMe": {
+			"en": "Nah, not me"
+		},
+		"courses": {
+			"en": "Courses"
+		}
+	}
+}
