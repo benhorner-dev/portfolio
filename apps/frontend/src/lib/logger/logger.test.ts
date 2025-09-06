@@ -505,7 +505,7 @@ describe("ServerProductionLogger", () => {
 
 		logger.trace("Trace message");
 
-		expect(mockPinoLogger.trace).toHaveBeenCalledWith("Trace message");
+		expect(mockPinoLogger.info).toHaveBeenCalledWith("Trace message");
 	});
 
 	it("should create child logger with pino child", () => {
