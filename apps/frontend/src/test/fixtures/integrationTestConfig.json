@@ -1,0 +1,98 @@
+{
+	"initialMessage": "Welcome to your Exploration!",
+	"header": "Nexties",
+	"subHeader": "Explore",
+	"placeHolder": "Begin your journey here...",
+	"submitBtnText": "Send",
+	"systemPrompt": "You are the oracle, the great AI decision maker. OBJECTIVE: Create a complete user profile to help with course selection. STRICT RULES: - Look at the scratchpad - it shows all previous tool usage - Count how many times each tool appears in the scratchpad - NEVER use a tool that already appears 2+ times in the scratchpad - NEVER use the same tool that was just used in the previous step - If the scratchpad shows sufficient profile information (name, passions, skills, values), use final_answer TOOLS AVAILABLE: - get_user_profile: Check if user has existing profile - set_user_profile: Save/update user profile information - rag_search: Search for course recommendations - final_answer: Provide final response to user DECISION LOGIC: 1. First, always check get_user_profile (unless already done) 2. If no profile exists, gather user information through conversation 3. Use set_user_profile to save collected information 4. Use rag_search for course recommendations (if profile is complete) 5. Use final_answer when you have sufficient information to help the user",
+	"defaultAgentActionLog": "TBD",
+	"llms": [
+		{
+			"provider": "openai",
+			"providerArgs": {
+				"model": "gpt-4o",
+				"temperature": 0
+			}
+		},
+		{
+			"provider": "anthropic",
+			"providerArgs": {
+				"model": "claude-3-sonnet-20240229",
+				"temperature": 0
+			}
+		},
+		{
+			"provider": "mock",
+			"providerArgs": {
+				"model": "mock-model",
+				"temperature": 0,
+				"response": "{\"name\": \"final_answer\", \"args\": {\"answer\": \"Input received by LLM\", \"researchSteps\": \"\", \"query\": \"\"}}"
+			}
+		}
+	],
+	"tools": [
+		{
+			"name": "rag_search",
+			"description": "Searches indexed course data using natural language queries. Returns relevant courses with metadata like provider, content type, similarity scores, and delivery information.",
+			"config": {
+				"courseTitle": "Unknown Course",
+				"provider": "Unknown Provider",
+				"chunkType": "content",
+				"similarityScore": "0.000",
+				"contentPreview": "No content available...",
+				"categories": "Uncategorized",
+				"tags": "No tags",
+				"level": "Not specified",
+				"deliveryModes": "Not specified",
+				"subStringLength": 200
+			}
+		},
+		{
+			"name": "get_user_profile",
+			"description": "Fetches and returns a user's profile from a cache, using the chatId as a key.",
+			"config": {
+				"nonExistentProfileSuffix": "You need to create a profile for the user. Please ask them their name."
+			}
+		},
+		{
+			"name": "set_user_profile",
+			"description": "Sets or updates user profile information."
+		}
+	],
+	"initialTools": [
+		{
+			"name": "rag_search",
+			"description": "Searches indexed course data using natural language queries. Returns relevant courses with metadata like provider, content type, similarity scores, and delivery information.",
+			"config": {
+				"courseTitle": "Unknown Course",
+				"provider": "Unknown Provider",
+				"chunkType": "content",
+				"similarityScore": "0.000",
+				"contentPreview": "No content available...",
+				"categories": "Uncategorized",
+				"tags": "No tags",
+				"level": "Not specified",
+				"deliveryModes": "Not specified",
+				"subStringLength": 200
+			}
+		},
+		{
+			"name": "get_user_profile",
+			"description": "Fetches and returns a user's profile from a cache, using the chatId as a key.",
+			"config": {
+				"nonExistentProfileSuffix": "You need to create a profile for the user. Please ask them their name."
+			}
+		},
+		{
+			"name": "set_user_profile",
+			"description": "Sets or updates user profile information."
+		}
+	],
+	"answerFormatters": [{ "name": "default" }],
+	"langsmithUrl": "https://smith.langchain.com/o/ffc5afc7-2613-4145-aad4-a9ea804c509e/projects/p/5c2c0ddb-2937-4b74-bc07-f106f1bdfd54?timeModel=%7B%22duration%22%3A%227d%22%7D&peek=5af19392-0f60-4433-b141-be0a939aa00a&peeked_trace=5af19392-0f60-4433-b141-be0a939aa00a",
+	"maxIntermediateSteps": 3,
+	"defaultErrorMessage": "## Oops...\n\nLooks like something has gone wrong",
+	"embeddingModelName": "text-embedding-3-small",
+	"vectorResultsTopK": 2,
+	"indexName": "course-chunks"
+}

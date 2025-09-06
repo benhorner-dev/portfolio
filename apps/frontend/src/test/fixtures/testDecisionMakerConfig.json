@@ -1,0 +1,84 @@
+{
+	"statisticalThresholds": {
+		"alphaThreshold": 0.05,
+		"minEffectSize": 0.3,
+		"minSampleSize": 10,
+		"minKappa": 0.6,
+		"minStatisticalPowerThreshold": 0.5
+	},
+	"decisionThresholds": {
+		"defaultWeight": 1.0,
+		"strongTotalScoreThreshold": 4.0,
+		"positiveHumanEvalThreshold": 0,
+		"goodAutomatedMetricsThreshold": 3.0,
+		"minSignificantImprovements": 3,
+		"moderateEvidenceThreshold": 2.0,
+		"negativeHumanEvalThreshold": -2.0,
+		"minCriticalDegradationsForBlock": 1,
+		"minReliabilityIssuesForWarning": 1,
+		"severeDegradationThreshold": -10.0,
+		"moderateDegradationThreshold": -5.0,
+		"minimalChangeThreshold": 0.5,
+		"noSignificantChangesThreshold": 0.0
+	},
+	"multipliers": {
+		"humanEvalWeightMultiplier": 2.0,
+		"unreliableHumanEvalMultiplier": 0.5
+	},
+	"formattingPrecision": {
+		"kappaDecimalPlaces": 3,
+		"cohensDecimalPlaces": 2,
+		"pValueDecimalPlaces": 3,
+		"scoreDecimalPlaces": 2,
+		"statisticalPowerDecimalPlaces": 1,
+		"netScoreRoundingPrecision": 100,
+		"humanEvalScoreRoundingPrecision": 100,
+		"reliabilityScoreRoundingPrecision": 1000
+	},
+	"configurationArrays": {
+		"criticalMetrics": [
+			"failureRate",
+			"timeoutRate",
+			"latencyP95",
+			"latencyP99"
+		],
+		"humanMetrics": [
+			"recommendationQuality",
+			"explanationClarity",
+			"relevanceToProfile",
+			"courseVariety",
+			"trustworthiness",
+			"overallSatisfaction"
+		],
+		"weightings": {
+			"recommendationQuality": 3.0,
+			"overallSatisfaction": 3.0,
+			"relevanceToProfile": 2.5,
+			"explanationClarity": 2.0,
+			"trustworthiness": 2.0,
+			"courseVariety": 1.5,
+			"contextPrecision": 2.5,
+			"contextRecall": 2.5,
+			"contextF1": 2.0,
+			"retrievalNDCG": 2.0,
+			"precision@1": 2.5,
+			"precision@3": 2.0,
+			"ndcg@1": 2.5,
+			"ndcg@3": 2.0,
+			"meanReciprocalRank": 2.0,
+			"meanAveragePrecision": 2.0,
+			"faithfulness": 2.0,
+			"answerRelevancy": 2.0,
+			"answerCorrectness": 1.8,
+			"answerSimilarity": 1.5,
+			"latencyP50": -1.5,
+			"latencyP95": -2.0,
+			"latencyP99": -1.8,
+			"retrievalLatency": -1.0,
+			"generationLatency": -1.0,
+			"tokenUsage": -1.0,
+			"failureRate": -3.0,
+			"timeoutRate": -3.0
+		}
+	}
+}

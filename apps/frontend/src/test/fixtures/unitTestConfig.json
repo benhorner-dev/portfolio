@@ -1,0 +1,36 @@
+{
+	"systemPrompt": "You are a test agent. Your task is to respond to the user's query with a simple echo of the input. Do not use any tools or perform any actions other than echoing the input back to the user.",
+	"defaultAgentActionLog": "This is a test action log.",
+	"llms": [
+		{
+			"provider": "openai",
+			"providerArgs": {
+				"model": "gpt-4o",
+				"temperature": 0
+			}
+		}
+	],
+	"tools": [
+		{
+			"name": "test_tool",
+			"description": "test description"
+		}
+	],
+	"initialTools": [
+		{
+			"name": "test_tool",
+			"description": "test description"
+		}
+	],
+	"answerFormatters": [
+		{
+			"name": "default"
+		}
+	],
+	"langsmithUrl": "test",
+	"maxIntermediateSteps": 5,
+	"defaultErrorMessage": "## Test Error\n\nThis is a test error message to",
+	"embeddingModelName": "text-embedding-3-small",
+	"vectorResultsTopK": 5,
+	"indexName": "course-chunks"
+}
