@@ -20,6 +20,8 @@ export const getMockLLM = (
 	}
 
 	const mockRunnable = RunnableLambda.from(async (input: any) => {
+		await new Promise((resolve) => setTimeout(resolve, 5000));
+
 		if (!args.response) {
 			return {
 				content: "No arguments provided to mock LLM",

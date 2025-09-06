@@ -73,7 +73,9 @@ test.describe("Portfolio E2E Test - Complete User Journey", () => {
 		const typingIndicator = page.locator(".animate-bounce").first();
 		await expect(typingIndicator).toBeVisible({ timeout: 5000 });
 
-		await expect(page.locator("text=work!")).toBeVisible({ timeout: 8000 });
+		await expect(page.locator("text=test question three")).toBeVisible({
+			timeout: 8000,
+		});
 		await expect(page.locator('input[placeholder*="Type"]')).toBeVisible();
 
 		const quickReplies = page.locator("text=Tell me about your projects");
@@ -135,13 +137,6 @@ test.describe("Portfolio E2E Test - Complete User Journey", () => {
 		await expect(logoutButton).toBeVisible({ timeout: 10000 });
 
 		await logoutButton.click();
-
-		try {
-			await page.waitForURL(/auth0.*logout/, { timeout: 5000 });
-			await page.waitForURL(/^((?!auth0).)*$/, { timeout: 10000 });
-		} catch {
-			await page.waitForTimeout(3000);
-		}
 
 		await page.waitForLoadState("networkidle");
 		const loginButtonAfterLogout = page
