@@ -312,6 +312,22 @@ describe("AgentOrchestrator runOracle", () => {
 		);
 	});
 
+	it("should throw AgentGraphError when LLM does not have bindTools method", async () => {
+		const mockOracleWithoutBindTools = {
+			withConfig: vi.fn(() => ({
+				invoke: vi.fn().mockResolvedValue({
+					content: "thinking result",
+					usage_metadata: { total_tokens: 5 },
+				}),
+			})),
+		};
+		orchestrator.llm = mockOracleWithoutBindTools;
+
+		await expect(orchestrator.runOracle(mockState)).rejects.toThrow(
+			"LLM does not have bindTools method",
+		);
+	});
+
 	it("should handle thinkingResult.content as object and convert to JSON string", async () => {
 		const mockOracle = {
 			bindTools: vi.fn((tools, options) => {
