@@ -5,12 +5,23 @@ vi.mock("@/lib/logger", () => ({
 	getLogger: () => ({
 		trace: vi.fn(),
 		error: vi.fn(),
+		warn: vi.fn(),
+		info: vi.fn(),
+		debug: vi.fn(),
+		verbose: vi.fn(),
 	}),
 }));
 
 import { getLogger } from "@/lib/logger";
 
-const mockLogger = getLogger();
+const mockLogger = getLogger() as unknown as {
+	trace: ReturnType<typeof vi.fn>;
+	error: ReturnType<typeof vi.fn>;
+	warn: ReturnType<typeof vi.fn>;
+	info: ReturnType<typeof vi.fn>;
+	debug: ReturnType<typeof vi.fn>;
+	verbose: ReturnType<typeof vi.fn>;
+};
 
 describe("TracedClass", () => {
 	const mockErrors = {
@@ -87,8 +98,9 @@ describe("TracedClass", () => {
 		instance.testMethod();
 
 		const traceCalls = mockLogger.trace.mock.calls;
-		const hasConstructorTrace = traceCalls.some((call: any) =>
-			call[0]?.includes("constructor"),
+		const hasConstructorTrace = traceCalls.some(
+			(call: unknown[]) =>
+				typeof call[0] === "string" && call[0].includes("constructor"),
 		);
 
 		expect(hasConstructorTrace).toBe(false);
@@ -215,7 +227,9 @@ describe("TracedClass", () => {
 		instance.testMethod("input");
 
 		const traceCalls = mockLogger.trace.mock.calls;
-		const hasVerboseCall = traceCalls.some((call: any) => call.length > 1);
+		const hasVerboseCall = traceCalls.some(
+			(call: unknown[]) => call.length > 1,
+		);
 		expect(hasVerboseCall).toBe(false);
 	});
 

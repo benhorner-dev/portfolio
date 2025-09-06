@@ -5,11 +5,10 @@ import { getLogger } from "@/lib/logger";
 const logger = getLogger();
 
 export function TracedClass(errors: Errors, verbose = false) {
+	// biome-ignore lint/suspicious/noShadowRestrictedNames: false positive
 	// biome-ignore lint/suspicious/noExplicitAny: TypeScript mixins require any[] for constructor parameters
-	return <T extends { new (...args: any[]): Record<string, unknown> }>(
-		BaseConstructor: T,
-	) => {
-		return class TracedClass extends BaseConstructor {
+	return <T extends { new (...args: any[]): any }>(constructor: T) => {
+		return class TracedClass extends constructor {
 			// biome-ignore lint/suspicious/noExplicitAny: TypeScript mixins require any[] for constructor parameters
 			constructor(...args: any[]) {
 				super(...args);
@@ -18,13 +17,12 @@ export function TracedClass(errors: Errors, verbose = false) {
 
 			private instrumentMethods(): void {
 				const methods = this.getInstrumentableMethods();
-				for (const methodName of methods) {
-					this.wrapMethod(methodName);
-				}
+				// biome-ignore lint/suspicious/useIterableCallbackReturn: TypeScript mixins require any[] for constructor parameters
+				methods.forEach((methodName) => this.wrapMethod(methodName));
 			}
 
 			private getInstrumentableMethods(): string[] {
-				const prototype = BaseConstructor.prototype;
+				const prototype = constructor.prototype;
 				const allProperties = Object.getOwnPropertyNames(prototype);
 
 				return allProperties.filter((name) =>
@@ -32,10 +30,8 @@ export function TracedClass(errors: Errors, verbose = false) {
 				);
 			}
 
-			private isInstrumentableMethod(
-				name: string,
-				prototype: Record<string, unknown>,
-			): boolean {
+			// biome-ignore lint/suspicious/noExplicitAny: TypeScript mixins require any[] for constructor parameters
+			private isInstrumentableMethod(name: string, prototype: any): boolean {
 				if (this.isReservedMethodName(name)) {
 					return false;
 				}
@@ -50,25 +46,22 @@ export function TracedClass(errors: Errors, verbose = false) {
 			}
 
 			private wrapMethod(methodName: string): void {
-				const originalMethod = (this as Record<string, unknown>)[
-					methodName
-				] as (...args: unknown[]) => unknown;
-				(this as Record<string, unknown>)[methodName] = (
-					...args: unknown[]
-				) => {
-					return this.handleMethodCall(
-						methodName,
-						originalMethod.bind(this),
-						args,
-					);
+				// biome-ignore lint/suspicious/noExplicitAny: TypeScript mixins require any[] for constructor parameters
+				const originalMethod = (this as any)[methodName].bind(this);
+				// biome-ignore lint/suspicious/noExplicitAny: TypeScript mixins require any[] for constructor parameters
+				(this as any)[methodName] = (...args: any[]) => {
+					return this.handleMethodCall(methodName, originalMethod, args);
 				};
 			}
 
 			private handleMethodCall(
 				methodName: string,
-				originalMethod: (...args: unknown[]) => unknown,
-				args: unknown[],
-			): unknown {
+				// biome-ignore lint/suspicious/noExplicitAny: TypeScript mixins require any[] for constructor parameters
+				originalMethod: (...args: any[]) => any,
+				// biome-ignore lint/suspicious/noExplicitAny: TypeScript mixins require any[] for constructor parameters
+				args: any[],
+				// biome-ignore lint/suspicious/noExplicitAny: TypeScript mixins require any[] for constructor parameters
+			): any {
 				const context = this.createTracedContext(methodName);
 
 				this.logTrace(context, TraceEvent.ENTER, args);
@@ -86,18 +79,18 @@ export function TracedClass(errors: Errors, verbose = false) {
 				}
 			}
 
-			private handleSyncResult(
-				result: unknown,
-				context: MethodContext,
-			): unknown {
+			// biome-ignore lint/suspicious/noExplicitAny: TypeScript mixins require any[] for constructor parameters
+			private handleSyncResult(result: any, context: MethodContext): any {
 				this.logTrace(context, TraceEvent.SUCCESS, result);
 				return result;
 			}
 
 			private async handleAsyncResult(
-				promise: Promise<unknown>,
+				// biome-ignore lint/suspicious/noExplicitAny: TypeScript mixins require any[] for constructor parameters
+				promise: Promise<any>,
 				context: MethodContext,
-			): Promise<unknown> {
+				// biome-ignore lint/suspicious/noExplicitAny: TypeScript mixins require any[] for constructor parameters
+			): Promise<any> {
 				try {
 					const result = await promise;
 					this.logTrace(context, TraceEvent.SUCCESS, result);
@@ -130,7 +123,7 @@ export function TracedClass(errors: Errors, verbose = false) {
 
 			private createTracedContext(methodName: string): MethodContext {
 				return {
-					className: BaseConstructor.name,
+					className: constructor.name,
 					methodName,
 					traceId: this.getTraceId(),
 				};
@@ -139,7 +132,8 @@ export function TracedClass(errors: Errors, verbose = false) {
 			private logTrace(
 				context: MethodContext,
 				event: TraceEvent,
-				data?: unknown,
+				// biome-ignore lint/suspicious/noExplicitAny: TypeScript mixins require any[] for constructor parameters
+				data?: any,
 			): void {
 				const message = `[${context.traceId}] ${context.className}.${context.methodName} - ${event}`;
 
@@ -165,9 +159,8 @@ export function TracedClass(errors: Errors, verbose = false) {
 			}
 
 			private getTraceId(): string {
-				return (
-					((this as Record<string, unknown>).traceId as string) || "no-trace-id"
-				);
+				// biome-ignore lint/suspicious/noExplicitAny: TypeScript mixins require any[] for constructor parameters
+				return (this as any).traceId || "no-trace-id";
 			}
 		};
 	};
