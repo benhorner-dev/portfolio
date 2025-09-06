@@ -1,8 +1,49 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { vi } from "vitest";
 import { TypographyH2 } from "@/components/atoms/h2";
 import { TypographyP } from "@/components/atoms/p";
 import { ChatHeader } from "@/components/molecules/chatHeader";
 import { Chat } from "./chat";
+
+vi.mock("@ai-sdk/rsc", () => ({
+	readStreamableValue: vi.fn(),
+	createStreamableValue: vi.fn(),
+}));
+
+vi.mock("@langchain/langgraph", () => ({
+	StateGraph: vi.fn(),
+	END: "END",
+	START: "START",
+}));
+
+vi.mock("node:async_hooks", () => ({
+	AsyncLocalStorage: vi.fn(() => ({
+		run: vi.fn(),
+		getStore: vi.fn(),
+	})),
+}));
+
+vi.mock("redis", () => ({
+	createClient: vi.fn(() => ({
+		connect: vi.fn(),
+		disconnect: vi.fn(),
+		get: vi.fn(),
+		set: vi.fn(),
+	})),
+}));
+
+globalThis.Buffer = globalThis.Buffer || {
+	from: vi.fn(),
+	alloc: vi.fn(),
+	isBuffer: vi.fn(() => false),
+};
+
+vi.mock("@/lib/hooks/useChatMessages", () => ({
+	useChatMessages: vi.fn(() => ({
+		messages: [],
+		sendMessage: vi.fn(),
+	})),
+}));
 
 const meta: Meta<typeof Chat> = {
 	title: "Organisms/Chat",

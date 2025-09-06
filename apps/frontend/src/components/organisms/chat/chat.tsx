@@ -1,20 +1,19 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { Input } from "@/components/atoms/input";
 import type { ChatHeader } from "@/components/molecules/chatHeader";
 import { ChatInput } from "@/components/molecules/chatInput";
+import { ChatMessagesWrapper } from "@/components/molecules/chatMessagesWrapper/chatMessagesWrapper";
+import { ChatWindowWrapper } from "@/components/molecules/chatWindowWrapper/chatWindowWrapper";
 import { Message } from "@/components/molecules/message";
-import { MessageWrapper } from "@/components/molecules/message/messageWrapper";
 import { SendButton } from "@/components/molecules/sendButton";
-import { TypingIndicator } from "@/components/molecules/typingIndicator";
+import { InterlocutorType } from "@/lib/explore/constants";
 import { useChatInput } from "@/lib/hooks/useChatInput";
 import { useChatMessages } from "@/lib/hooks/useChatMessages";
 import { useChatScroll } from "@/lib/hooks/useChatScroll";
 import type { ChatInput as ChatInputType } from "@/lib/schema";
-import { MockChatService } from "@/lib/services/mockChatService";
-import { ChatMessagesWrapper } from "../../molecules/chatMessagesWrapper/chatMessagesWrapper";
-import { ChatWindowWrapper } from "../../molecules/chatWindowWrapper/chatWindowWrapper";
+import { useChatStore } from "@/lib/stores/chatStore";
 
 interface ChatProps {
 	header: React.ReactElement<React.ComponentProps<typeof ChatHeader>>;
@@ -22,30 +21,66 @@ interface ChatProps {
 }
 
 export function Chat({ header, placeholderTexts }: ChatProps) {
-	const { messages, sendMessage } = useChatMessages(new MockChatService());
-
 	const { inputValue, isTyping, handleInputChange, handleSend } =
 		useChatInput();
-	const { messagesContainerRef, scrollToBottom } = useChatScroll();
+	const { messagesContainerRef, handleScroll } = useChatScroll();
+	const { messages } = useChatMessages(messagesContainerRef);
+	const { scrollPosition, thoughts, addMessages } = useChatStore();
+
+	const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: scrollToBottom is stable from useChatScroll hook
-	useEffect(() => {
-		scrollToBottom();
-	}, [messages]);
+	useLayoutEffect(() => {
+		if (messagesContainerRef.current) {
+			messagesContainerRef.current.scrollTop = scrollPosition;
 
-	const handleSendMessage = () => {
-		if (handleSend()) {
-			sendMessage(inputValue);
+			if (scrollTimeoutRef.current) {
+				clearTimeout(scrollTimeoutRef.current);
+			}
+
+			scrollTimeoutRef.current = setTimeout(() => {
+				if (messagesContainerRef.current) {
+					const maxScroll =
+						messagesContainerRef.current.scrollHeight -
+						messagesContainerRef.current.clientHeight;
+
+					messagesContainerRef.current.scrollTo({
+						top: maxScroll,
+						behavior: "smooth",
+					});
+				}
+			}, 100);
 		}
-	};
-
-	const handleQuickReply = (reply: string) => {
-		sendMessage(reply);
-	};
+	}, [messagesContainerRef.current?.scrollHeight, thoughts]);
 
 	const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter" && !isTyping) {
 			handleSendMessage();
+		}
+	};
+
+	const handleSendMessage = () => {
+		const messageContent = inputValue.trim();
+		if (handleSend()) {
+			addMessages([
+				{
+					id: crypto.randomUUID(),
+					content: messageContent,
+					type: InterlocutorType.HUMAN,
+					timestamp: new Date().toISOString(),
+					thoughts: [],
+					quickReplies: [],
+				},
+				{
+					id: crypto.randomUUID(),
+					content: null,
+					type: InterlocutorType.AI,
+					timestamp: new Date().toISOString(),
+					thoughts: [],
+					quickReplies: [],
+					inputValue: messageContent,
+				},
+			]);
 		}
 	};
 	const input = (
@@ -54,9 +89,9 @@ export function Chat({ header, placeholderTexts }: ChatProps) {
 				isTyping ? placeholderTexts.typing : placeholderTexts.default
 			}
 			value={inputValue}
-			onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-				handleInputChange(e.target.value)
-			}
+			onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+				handleInputChange(e.target.value);
+			}}
 			onKeyDown={handleKeyPress}
 			disabled={isTyping}
 		/>
@@ -65,21 +100,13 @@ export function Chat({ header, placeholderTexts }: ChatProps) {
 		<ChatWindowWrapper data-auth-required="true">
 			<div className="bg-card/30 backdrop-blur-sm rounded-2xl border border-border/20 shadow-2xl overflow-hidden hover:animate-terminal-glow transition-all duration-500">
 				{header}
-				<ChatMessagesWrapper messagesContainerRef={messagesContainerRef}>
+				<ChatMessagesWrapper
+					messagesContainerRef={messagesContainerRef}
+					onScroll={handleScroll}
+				>
 					{messages.map((message) => (
-						<MessageWrapper key={message.id} isUser={message.isUser}>
-							<Message
-								msgId={message.id}
-								text={message.text}
-								isUser={message.isUser}
-								quickReplies={message.quickReplies}
-								onQuickReply={handleQuickReply}
-								isTyping={isTyping}
-							/>
-						</MessageWrapper>
+						<Message key={message.id} message={message} />
 					))}
-
-					{isTyping && <TypingIndicator />}
 				</ChatMessagesWrapper>
 
 				<ChatInput
