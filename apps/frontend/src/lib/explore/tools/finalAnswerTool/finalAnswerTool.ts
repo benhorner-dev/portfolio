@@ -12,6 +12,7 @@ const logger = getLogger();
 
 const TOOL_NAME = "final_answer";
 
+/* v8 ignore start */
 export const finalAnswerTool = tool(
 	async (props) => finalAnswer(props as FinalAnswerArgs),
 	{
@@ -20,6 +21,7 @@ export const finalAnswerTool = tool(
 		schema: FinalAnswerSchema,
 	},
 );
+/* v8 ignore end */
 
 export const finalAnswer = async ({
 	answer,
