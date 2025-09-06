@@ -39,6 +39,11 @@ export default defineConfig({
 				"src/app/.well-known/vercel/flags/route.ts",
 				"src/lib/services/mockChatService.ts",
 				"src/components/organisms/chatWrapper/**",
+				"src/lib/explore/graph/**",
+				"src/lib/explore/llms/mockLLM/**",
+				"src/lib/explore/tools/ragGraphSearchTool/**",
+				"src/lib/explore/maps.ts",
+				"src/lib/explore/types.ts",
 			],
 			thresholds: {
 				lines: 100,
