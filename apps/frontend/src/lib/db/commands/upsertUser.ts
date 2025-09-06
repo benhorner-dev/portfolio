@@ -19,7 +19,10 @@ export const upsertUser = await dbOperation(
 				set: {
 					email: sql`excluded.email`,
 					name: sql`excluded.name`,
-					tokens: sql`excluded.tokens`,
+					tokens:
+						user.tokens !== undefined
+							? sql`excluded.tokens`
+							: sql`users.tokens`,
 					updatedAt: sql`now()`,
 				},
 			})
