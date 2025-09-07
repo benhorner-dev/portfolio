@@ -39,7 +39,7 @@ const config: StorybookConfig = {
 					...config.build?.rollupOptions,
 					external: [
 						...(config.build?.rollupOptions?.external || []),
-						"@langchain/langgraph",
+						// Removed @langchain/langgraph from external list to allow mocking
 						"node:async_hooks",
 						"node:fs",
 						"node:crypto",
@@ -75,7 +75,6 @@ const config: StorybookConfig = {
 				...config.resolve,
 				alias: {
 					...config.resolve?.alias,
-					"@langchain/langgraph": false,
 					"@ai-sdk/rsc": require.resolve("./mocks/ai-sdk-rsc.js"),
 					"node:async_hooks": false,
 					"node:fs": false,
