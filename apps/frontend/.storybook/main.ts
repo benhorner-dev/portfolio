@@ -29,17 +29,17 @@ const config: StorybookConfig = {
 			global: "globalThis",
 		};
 
-		// Only externalize modules when building Storybook (not during tests)
+		// Only externalize truly incompatible Node.js modules when building Storybook
 		// Check if we're actually building Storybook vs running tests
 		if (process.env.NODE_ENV !== "test" && !process.env.VITEST) {
-			// Externalize Node.js modules and server-side packages
+			// Only externalize core Node.js modules that can't work in browsers
 			config.build = {
 				...config.build,
 				rollupOptions: {
 					...config.build?.rollupOptions,
 					external: [
 						...((config.build?.rollupOptions?.external as string[]) || []),
-						// Removed @langchain/langgraph and events from external list to allow normal resolution
+						// Only externalize core Node.js modules that have no browser equivalent
 						"node:async_hooks",
 						"node:fs",
 						"node:crypto",
@@ -58,13 +58,6 @@ const config: StorybookConfig = {
 						"stream",
 						"os",
 						"perf_hooks",
-						"redis",
-						"postgres",
-						"neo4j-driver",
-						"chromadb",
-						"@neondatabase/serverless",
-						"@vercel/kv",
-						"@pinecone-database/pinecone",
 					],
 				},
 			};
@@ -78,13 +71,6 @@ const config: StorybookConfig = {
 					"node:async_hooks": "false",
 					"node:fs": "false",
 					"node:events": "false",
-					redis: "false",
-					postgres: "false",
-					"neo4j-driver": "false",
-					chromadb: "false",
-					"@neondatabase/serverless": "false",
-					"@vercel/kv": "false",
-					"@pinecone-database/pinecone": "false",
 				},
 			};
 		}
