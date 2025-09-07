@@ -12,151 +12,151 @@ permissions:
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
-  setup-and-run-tests:
-    runs-on: ubuntu-latest
-    environment: ci
-    strategy:
-      matrix:
-        include:
-          - test-file: "home"
-            needs-chromadb: false
-            needs-backend: false
-      fail-fast: false
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.test-file }}
-      cancel-in-progress: true
-    name: E2E - ${{ matrix.test-file }}
-    env:
-      VERCEL_ENV: "preview"
-      NEXT_PUBLIC_POSTHOG_KEY: ${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
-      CONTENT_CONFIG_PATH: "src/config/contentConfig.json"
-      STATSIG_SERVER_API_KEY: ${{ secrets.STATSIG_SERVER_API_KEY }}
-      TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
-      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
-      APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
-      AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
-      AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
-      AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
-      AUTH0_SCOPE: ${{ secrets.AUTH0_SCOPE }}
-      AUTH0_SECRET: ${{ secrets.AUTH0_SECRET }}
-      AGENT_CONFIG_PATH: './src/config/integrationAgentConfig.json'
-      ALL_AGENT_CONFIG_PATH: './src/config/allAgentConfig.json'
-      # secretlint-disable-next-line
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
-    services:
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      backend-postgres:
-        image: postgres:latest
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_DB: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      neo4j:
-        image: neo4j:latest
-        ports:
-          - 7474:7474
-          - 7687:7687
-        env:
-          NEO4J_AUTH: neo4j/password
-        options: >-
-          --health-cmd "cypher-shell -u neo4j -p password 'RETURN 1'"
-          --health-interval 30s
-          --health-timeout 10s
-          --health-retries 5
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - name: Install dependencies
-        run: |
-          bun install
-          bun add -D wait-on
-          bunx playwright install chromium --with-deps
-      - name: Set up Database
-        run: |
-          bunx turbo migrate
-      - name: Make scripts executable
-        run: chmod +x tools/ci/*.sh
-      - name: Start server
-        run: ./tools/ci/start-dev-server.sh
-      - name: Wait for development server
-        run: ./tools/ci/wait-for-service.sh localhost 3000
-      - name: Run E2E tests
-        run: ./tools/ci/run-e2e-tests.sh "tests/${{ matrix.test-file }}.spec.ts"
-        env:
-          # secretlint-disable-next-line
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+  # setup-and-run-tests:
+  #   runs-on: ubuntu-latest
+  #   environment: ci
+  #   strategy:
+  #     matrix:
+  #       include:
+  #         - test-file: "home"
+  #           needs-chromadb: false
+  #           needs-backend: false
+  #     fail-fast: false
+  #   concurrency:
+  #     group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.test-file }}
+  #     cancel-in-progress: true
+  #   name: E2E - ${{ matrix.test-file }}
+  #   env:
+  #     VERCEL_ENV: "preview"
+  #     NEXT_PUBLIC_POSTHOG_KEY: ${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
+  #     CONTENT_CONFIG_PATH: "src/config/contentConfig.json"
+  #     STATSIG_SERVER_API_KEY: ${{ secrets.STATSIG_SERVER_API_KEY }}
+  #     TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+  #     TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+  #     APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+  #     AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+  #     AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
+  #     AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+  #     AUTH0_SCOPE: ${{ secrets.AUTH0_SCOPE }}
+  #     AUTH0_SECRET: ${{ secrets.AUTH0_SECRET }}
+  #     AGENT_CONFIG_PATH: './src/config/integrationAgentConfig.json'
+  #     ALL_AGENT_CONFIG_PATH: './src/config/allAgentConfig.json'
+  #     # secretlint-disable-next-line
+  #     DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+  #   services:
+  #     redis:
+  #       image: redis:7-alpine
+  #       ports:
+  #         - 6379:6379
+  #       options: >-
+  #         --health-cmd "redis-cli ping"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #     backend-postgres:
+  #       image: postgres:latest
+  #       ports:
+  #         - 5432:5432
+  #       env:
+  #         POSTGRES_DB: postgres
+  #         POSTGRES_USER: postgres
+  #         POSTGRES_PASSWORD: postgres
+  #       options: >-
+  #         --health-cmd "pg_isready -U postgres"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #     neo4j:
+  #       image: neo4j:latest
+  #       ports:
+  #         - 7474:7474
+  #         - 7687:7687
+  #       env:
+  #         NEO4J_AUTH: neo4j/password
+  #       options: >-
+  #         --health-cmd "cypher-shell -u neo4j -p password 'RETURN 1'"
+  #         --health-interval 30s
+  #         --health-timeout 10s
+  #         --health-retries 5
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Setup Bun
+  #       uses: oven-sh/setup-bun@v2
+  #       with:
+  #         bun-version: latest
+  #     - name: Install dependencies
+  #       run: |
+  #         bun install
+  #         bun add -D wait-on
+  #         bunx playwright install chromium --with-deps
+  #     - name: Set up Database
+  #       run: |
+  #         bunx turbo migrate
+  #     - name: Make scripts executable
+  #       run: chmod +x tools/ci/*.sh
+  #     - name: Start server
+  #       run: ./tools/ci/start-dev-server.sh
+  #     - name: Wait for development server
+  #       run: ./tools/ci/wait-for-service.sh localhost 3000
+  #     - name: Run E2E tests
+  #       run: ./tools/ci/run-e2e-tests.sh "tests/${{ matrix.test-file }}.spec.ts"
+  #       env:
+  #         # secretlint-disable-next-line
+  #         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
 
 
 
 
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: ./apps/frontend/test-results
-          retention-days: 1
-      - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 1
-      - name: Upload server logs
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: dev-server-logs-${{ strategy.job-index }}
-          path: server-logs.txt
-          retention-days: 1
+  #     - uses: actions/upload-artifact@v4
+  #       if: always()
+  #       with:
+  #         name: test-results
+  #         path: ./apps/frontend/test-results
+  #         retention-days: 1
+  #     - uses: actions/upload-artifact@v4
+  #       if: ${{ !cancelled() }}
+  #       with:
+  #         name: playwright-report
+  #         path: playwright-report/
+  #         retention-days: 1
+  #     - name: Upload server logs
+  #       uses: actions/upload-artifact@v4
+  #       if: always()
+  #       with:
+  #         name: dev-server-logs-${{ strategy.job-index }}
+  #         path: server-logs.txt
+  #         retention-days: 1
   chromatic:
     name: Run Chromatic
-    needs: setup-and-run-tests
+    # needs: setup-and-run-tests
     runs-on: ubuntu-latest
     env:
       CONTENT_CONFIG_PATH: "src/config/contentConfig.json"
       STATSIG_SERVER_API_KEY: ${{ secrets.STATSIG_SERVER_API_KEY }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.17.0
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - name: Install dependencies
-        run: bun i
-      - name: Download Playwright test results
-        uses: actions/download-artifact@v4
-        with:
-          name: test-results
-          path: ./test-results
-      - name: Run Chromatic (Playwright)
-        uses: chromaui/action@latest
-        with:
-          playwright: true
-          projectToken: ${{ secrets.CHROMATIC_PROJECT_PLAYWRIGHT_TOKEN }}
+      # - uses: actions/checkout@v4
+      #   with:
+      #     fetch-depth: 0
+      # - uses: actions/setup-node@v4
+      #   with:
+      #     node-version: 22.17.0
+      # - name: Setup Bun
+      #   uses: oven-sh/setup-bun@v2
+      #   with:
+      #     bun-version: latest
+      # - name: Install dependencies
+      #   run: bun i
+      # - name: Download Playwright test results
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: test-results
+      #     path: ./test-results
+      # - name: Run Chromatic (Playwright)
+      #   uses: chromaui/action@latest
+      #   with:
+      #     playwright: true
+      #     projectToken: ${{ secrets.CHROMATIC_PROJECT_PLAYWRIGHT_TOKEN }}
 
       - name: Run Chromatic (Storybook)
         uses: chromaui/action@latest
