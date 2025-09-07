@@ -161,6 +161,7 @@ jobs:
       - name: Run Chromatic (Storybook)
         uses: chromaui/action@latest
         with:
+          buildCommand: bun run build-storybook
           projectToken: ${{ secrets.CHROMATIC_PROJECT_STORYBOOK_TOKEN }}
           workingDir: apps/frontend
         env:
