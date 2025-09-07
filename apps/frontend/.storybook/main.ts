@@ -29,35 +29,26 @@ const config: StorybookConfig = {
 			global: "globalThis",
 		};
 
-		// Only externalize truly incompatible Node.js modules when building Storybook
+		// Configure for Next.js canary compatibility
 		// Check if we're actually building Storybook vs running tests
 		if (process.env.NODE_ENV !== "test" && !process.env.VITEST) {
-			// Only externalize core Node.js modules that can't work in browsers
+			// Minimal externalization for Next.js canary - let Vite handle most modules
 			config.build = {
 				...config.build,
 				rollupOptions: {
 					...config.build?.rollupOptions,
 					external: [
 						...((config.build?.rollupOptions?.external as string[]) || []),
-						// Only externalize core Node.js modules that have no browser equivalent
-						"node:async_hooks",
+						// Only externalize core Node.js modules that absolutely can't work in browsers
 						"node:fs",
 						"node:crypto",
-						"node:events",
 						"node:net",
 						"node:tls",
-						"node:url",
-						"node:timers/promises",
-						"async_hooks",
 						"fs",
 						"crypto",
 						"net",
 						"tls",
-						"url",
-						"timers",
-						"stream",
 						"os",
-						"perf_hooks",
 					],
 				},
 			};
@@ -68,9 +59,7 @@ const config: StorybookConfig = {
 				alias: {
 					...config.resolve?.alias,
 					"@ai-sdk/rsc": require.resolve("./mocks/ai-sdk-rsc.js"),
-					"node:async_hooks": "false",
 					"node:fs": "false",
-					"node:events": "false",
 				},
 			};
 		}
