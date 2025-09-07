@@ -49,6 +49,7 @@ describe("useChatMessages", () => {
 			updateThoughts: vi.fn(),
 			chatId: "test-chat-id",
 			config: mockConfig,
+			addMessages: vi.fn(),
 		});
 		mockUseChatStore.getState = mockGetState;
 		mockGetState.mockReturnValue({
@@ -93,11 +94,12 @@ describe("useChatMessages", () => {
 			updateThoughts: vi.fn(),
 			chatId: null,
 			config: mockConfig,
+			addMessages: vi.fn(),
 		});
 
 		const { result } = renderHook(() => useChatMessages(mockAction));
 
-		await expect(result.current.sendMessage(mockMessages[0])).rejects.toThrow(
+		await expect(result.current.sendMessage("test message")).rejects.toThrow(
 			AgentGraphError,
 		);
 	});
@@ -110,23 +112,22 @@ describe("useChatMessages", () => {
 			updateThoughts: vi.fn(),
 			chatId: "test-chat-id",
 			config: null,
+			addMessages: vi.fn(),
 		});
 
 		const { result } = renderHook(() => useChatMessages(mockAction));
 
-		await expect(result.current.sendMessage(mockMessages[0])).rejects.toThrow(
+		await expect(result.current.sendMessage("test message")).rejects.toThrow(
 			AgentGraphError,
 		);
 	});
 
 	it("should throw error when inputValue is missing", async () => {
-		const messageWithoutInput = { ...mockMessages[0], inputValue: "" };
-
 		const { result } = renderHook(() => useChatMessages(mockAction));
 
-		await expect(
-			result.current.sendMessage(messageWithoutInput),
-		).rejects.toThrow("Message input value is required");
+		await expect(result.current.sendMessage("")).rejects.toThrow(
+			"Message input value is required",
+		);
 	});
 
 	it("should handle successful message sending", async () => {
@@ -149,7 +150,7 @@ describe("useChatMessages", () => {
 		const { result } = renderHook(() => useChatMessages(mockAction));
 
 		await act(async () => {
-			await result.current.sendMessage(mockMessages[0]);
+			await result.current.sendMessage("Hello");
 		});
 
 		expect(mockCheckDailyTokenCount).toHaveBeenCalledWith("test-chat-id");
@@ -173,7 +174,7 @@ describe("useChatMessages", () => {
 
 		const { result } = renderHook(() => useChatMessages(mockAction));
 
-		await expect(result.current.sendMessage(mockMessages[0])).rejects.toThrow(
+		await expect(result.current.sendMessage("Hello")).rejects.toThrow(
 			"Stream error",
 		);
 	});
@@ -186,12 +187,12 @@ describe("useChatMessages", () => {
 		const { result } = renderHook(() => useChatMessages(mockAction));
 
 		await act(async () => {
-			await result.current.sendMessage(mockMessages[0]);
+			await result.current.sendMessage("Hello");
 		});
 
 		const mockStore = mockUseChatStore.mock.results[0].value;
 		expect(mockStore.updateMessage).toHaveBeenCalledWith(
-			mockMessages[0].id,
+			expect.any(String),
 			expect.objectContaining({
 				content: "User facing error",
 			}),
@@ -211,7 +212,7 @@ describe("useChatMessages", () => {
 		);
 
 		await act(async () => {
-			await result.current.sendMessage(mockMessages[0]);
+			await result.current.sendMessage("Hello");
 		});
 
 		expect(mockGetState().setScrollPosition).toHaveBeenCalledWith(
