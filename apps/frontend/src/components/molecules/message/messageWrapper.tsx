@@ -5,7 +5,7 @@ interface MessageProps {
 
 export function MessageWrapper({ isUser, children }: MessageProps) {
 	return (
-		<div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+		<div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
 			<div
 				className={`terminal-frame backdrop-blur-sm rounded-2xl px-4 py-3 max-w-xs transition-all duration-300 hover:animate-terminal-glow ${
 					isUser

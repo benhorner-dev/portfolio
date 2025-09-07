@@ -11,6 +11,7 @@ import type {
 	ChatMessage,
 } from "@/lib/explore/types";
 import { useChatStore } from "@/lib/stores/chatStore";
+import { InterlocutorType } from "../explore/constants";
 export const useChatMessages = (
 	action: AgentServerAction,
 	messagesContainerRef?: React.RefObject<HTMLDivElement | null>,
@@ -22,11 +23,23 @@ export const useChatMessages = (
 		updateThoughts,
 		chatId,
 		config,
+		addMessages,
 	} = useChatStore();
 
 	const sendMessage = useCallback(
-		async (message: ChatMessage) => {
-			const newMessage = { ...message };
+		async (message: string) => {
+			if (!message.trim()) {
+				throw new Error("Message input value is required");
+			}
+			const newMessage = {
+				id: crypto.randomUUID(),
+				content: null,
+				type: InterlocutorType.AI,
+				timestamp: new Date().toISOString(),
+				thoughts: [],
+				quickReplies: [],
+				inputValue: message,
+			} as ChatMessage;
 			try {
 				if (!chatId) {
 					throw new AgentGraphError("Chat ID is required");
@@ -34,19 +47,27 @@ export const useChatMessages = (
 				if (!config) {
 					throw new AgentGraphError("Config is required");
 				}
+				addMessages([
+					{
+						id: crypto.randomUUID(),
+						content: message,
+						type: InterlocutorType.HUMAN,
+						timestamp: new Date().toISOString(),
+						thoughts: [],
+						quickReplies: [],
+					},
+					newMessage,
+				]);
 				const user = await checkDailyTokenCount(chatId);
-
 				if (messagesContainerRef?.current) {
 					const { setScrollPosition } = useChatStore.getState();
 					setScrollPosition(messagesContainerRef.current.scrollTop);
 				}
 
 				setIsTyping(true);
-				if (!message.inputValue) {
-					throw new Error("Message input value is required");
-				}
+
 				const response = await action(
-					message.inputValue,
+					message,
 					config,
 					messages,
 					String(chatId),
@@ -97,11 +118,35 @@ export const useChatMessages = (
 			updateMessage,
 			updateThoughts,
 			chatId,
-			messagesContainerRef?.current,
 			config,
 			action,
+			addMessages,
+			messagesContainerRef,
 		],
 	);
 
 	return { messages, sendMessage };
 };
+
+// messagesContainerRef?: React.RefObject<HTMLDivElement | null>,
+// ) => {
+// 	const {
+// 		messages,
+// 		setIsTyping,
+// 		updateMessage,
+// 		updateThoughts,
+// 		chatId,
+// 		config,
+// 	} = useChatStore();
+
+// 	const sendMessage = useCallback(
+// 		async (message: ChatMessage) => {
+// 			const newMessage = { ...message };
+// 			try {
+// 				if (!chatId) {
+// 					throw new AgentGraphError("Chat ID is required");
+// 				}
+// 				if (!config) {
+// 					throw new AgentGraphError("Config is required");
+// 				}
+// 				const user = await checkDailyTokenCount(chatId);

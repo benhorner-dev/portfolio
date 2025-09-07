@@ -8,7 +8,7 @@ import { ChatMessagesWrapper } from "@/components/molecules/chatMessagesWrapper/
 import { ChatWindowWrapper } from "@/components/molecules/chatWindowWrapper/chatWindowWrapper";
 import { Message } from "@/components/molecules/message";
 import { SendButton } from "@/components/molecules/sendButton";
-import { InterlocutorType } from "@/lib/explore/constants";
+import { TypingIndicator } from "@/components/molecules/typingIndicator";
 import type { AgentServerAction } from "@/lib/explore/types";
 import { useChatInput } from "@/lib/hooks/useChatInput";
 import { useChatMessages } from "@/lib/hooks/useChatMessages";
@@ -26,9 +26,11 @@ export function Chat({ header, placeholderTexts, action }: ChatProps) {
 	const { inputValue, isTyping, handleInputChange, handleSend } =
 		useChatInput();
 	const { messagesContainerRef, handleScroll } = useChatScroll();
-	const { messages } = useChatMessages(action, messagesContainerRef);
-	const { scrollPosition, thoughts, addMessages } = useChatStore();
-
+	const { messages, sendMessage } = useChatMessages(
+		action,
+		messagesContainerRef,
+	);
+	const { thoughts, scrollPosition } = useChatStore();
 	const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 	/* v8 ignore start */
@@ -59,32 +61,14 @@ export function Chat({ header, placeholderTexts, action }: ChatProps) {
 
 	const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter" && !isTyping) {
-			handleSendMessage();
+			sendMessage(inputValue);
 		}
 	};
 
 	const handleSendMessage = () => {
 		const messageContent = inputValue.trim();
 		if (handleSend()) {
-			addMessages([
-				{
-					id: crypto.randomUUID(),
-					content: messageContent,
-					type: InterlocutorType.HUMAN,
-					timestamp: new Date().toISOString(),
-					thoughts: [],
-					quickReplies: [],
-				},
-				{
-					id: crypto.randomUUID(),
-					content: null,
-					type: InterlocutorType.AI,
-					timestamp: new Date().toISOString(),
-					thoughts: [],
-					quickReplies: [],
-					inputValue: messageContent,
-				},
-			]);
+			sendMessage(messageContent);
 		}
 	};
 	const input = (
@@ -100,6 +84,10 @@ export function Chat({ header, placeholderTexts, action }: ChatProps) {
 			disabled={isTyping}
 		/>
 	);
+
+	const handleQuickReply = (reply: string) => {
+		sendMessage(reply);
+	};
 	return (
 		<ChatWindowWrapper data-auth-required="true">
 			<div className="bg-card/30 backdrop-blur-sm rounded-2xl border border-border/20 shadow-2xl overflow-hidden hover:animate-terminal-glow transition-all duration-500">
@@ -109,7 +97,13 @@ export function Chat({ header, placeholderTexts, action }: ChatProps) {
 					onScroll={handleScroll}
 				>
 					{messages.map((message) => (
-						<Message key={message.id} message={message} action={action} />
+						<span key={message.id}>
+							{message.content === null && (
+								<TypingIndicator message={message} />
+							)}
+
+							<Message message={message} onQuickReply={handleQuickReply} />
+						</span>
 					))}
 				</ChatMessagesWrapper>
 

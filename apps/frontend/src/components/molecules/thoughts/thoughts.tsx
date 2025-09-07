@@ -14,7 +14,7 @@ interface ThoughtsProps {
 export const Thoughts = ({ thoughts, message }: ThoughtsProps) => {
 	return (
 		<div
-			className={`overflow-hidden transition-all duration-300 ease-in-out ${"opacity-100 max-h-96 transform translate-y-0"}`}
+			className={`overflow-hidden transition-all duration-300 ease-in-out mb-4 ${"opacity-100 max-h-96 transform translate-y-0"}`}
 		>
 			<Accordion type="single" collapsible>
 				<AccordionItem value="item-1" className="border-none">

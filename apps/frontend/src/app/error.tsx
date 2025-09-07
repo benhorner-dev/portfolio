@@ -18,7 +18,7 @@ export default function ErrorPage() {
 							<div className="animate-error-shake">
 								<TypographyH1 text="500" />
 							</div>
-							<div className="terminal-prompt text-left animate-terminal-flicker">
+							<div className="terminal-prompt text-left">
 								<span className="text-ctp-red">error:</span> internal server
 								error
 							</div>

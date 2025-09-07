@@ -149,6 +149,13 @@ it("Chat renders messages when messages exist", async () => {
 			timestamp: new Date().toISOString(),
 			thoughts: [],
 		},
+		{
+			id: "3",
+			content: null,
+			type: "ai",
+			timestamp: new Date().toISOString(),
+			thoughts: [],
+		},
 	];
 
 	const { useChatMessages } = await import("@/lib/hooks/useChatMessages");
@@ -183,7 +190,7 @@ it("Chat renders messages when messages exist", async () => {
 });
 
 it("Chat handles quick reply click", async () => {
-	const mockAddMessages = vi.fn();
+	const mockSendMessage = vi.fn();
 	const mockMessages = [
 		{
 			id: "1",
@@ -198,14 +205,14 @@ it("Chat handles quick reply click", async () => {
 	const { useChatMessages } = await import("@/lib/hooks/useChatMessages");
 	vi.mocked(useChatMessages).mockReturnValue({
 		messages: mockMessages as unknown as ChatMessage[],
-		sendMessage: vi.fn(),
+		sendMessage: mockSendMessage,
 	});
 
 	const { useChatStore } = await import("@/lib/stores/chatStore");
 	vi.mocked(useChatStore).mockReturnValue({
 		quickReplies: [],
 		setQuickReplies: vi.fn(),
-		addMessages: mockAddMessages,
+		addMessages: vi.fn(),
 		markMessageAsSent: vi.fn(),
 		isMessageSent: vi.fn(() => false),
 		getThoughts: vi.fn(() => []),
@@ -227,43 +234,25 @@ it("Chat handles quick reply click", async () => {
 	const quickReplyButton = screen.getByText("Thanks");
 	quickReplyButton.click();
 
-	expect(mockAddMessages).toHaveBeenCalledWith(
-		expect.arrayContaining([
-			expect.objectContaining({
-				content: "Thanks",
-				type: "human",
-			}),
-			expect.objectContaining({
-				content: null,
-				type: "ai",
-			}),
-		]),
-	);
+	expect(mockSendMessage).toHaveBeenCalledWith("Thanks");
 });
 
 it("Chat handles Enter key press when not typing", async () => {
-	const mockAddMessages = vi.fn();
-	const mockHandleSend = vi.fn(() => true);
+	const mockSendMessage = vi.fn();
 
 	const { useChatInput } = await import("@/lib/hooks/useChatInput");
-	const { useChatStore } = await import("@/lib/stores/chatStore");
+	const { useChatMessages } = await import("@/lib/hooks/useChatMessages");
 
 	vi.mocked(useChatInput).mockReturnValue({
 		inputValue: "test message",
 		isTyping: false,
 		handleInputChange: vi.fn(),
-		handleSend: mockHandleSend,
+		handleSend: vi.fn(() => true),
 	});
 
-	vi.mocked(useChatStore).mockReturnValue({
-		quickReplies: [],
-		setQuickReplies: vi.fn(),
-		addMessages: mockAddMessages,
-		markMessageAsSent: vi.fn(),
-		isMessageSent: vi.fn(() => false),
-		getThoughts: vi.fn(() => []),
-		scrollPosition: 0,
-		thoughts: [],
+	vi.mocked(useChatMessages).mockReturnValue({
+		messages: [],
+		sendMessage: mockSendMessage,
 	});
 
 	render(
@@ -280,20 +269,7 @@ it("Chat handles Enter key press when not typing", async () => {
 	const input = screen.getByPlaceholderText("Type a message");
 	fireEvent.keyDown(input, { key: "Enter" });
 
-	expect(mockHandleSend).toHaveBeenCalled();
-	expect(mockAddMessages).toHaveBeenCalledWith(
-		expect.arrayContaining([
-			expect.objectContaining({
-				content: "test message",
-				type: "human",
-			}),
-			expect.objectContaining({
-				content: null,
-				type: "ai",
-				inputValue: "test message",
-			}),
-		]),
-	);
+	expect(mockSendMessage).toHaveBeenCalledWith("test message");
 });
 
 it("Chat does not handle Enter key press when typing", async () => {
@@ -371,11 +347,11 @@ it("Chat handles non-Enter key press", async () => {
 });
 
 it("Chat handles send button click", async () => {
-	const mockAddMessages = vi.fn();
+	const mockSendMessage = vi.fn();
 	const mockHandleSend = vi.fn(() => true);
 
 	const { useChatInput } = await import("@/lib/hooks/useChatInput");
-	const { useChatStore } = await import("@/lib/stores/chatStore");
+	const { useChatMessages } = await import("@/lib/hooks/useChatMessages");
 
 	vi.mocked(useChatInput).mockReturnValue({
 		inputValue: "test message",
@@ -384,15 +360,9 @@ it("Chat handles send button click", async () => {
 		handleSend: mockHandleSend,
 	});
 
-	vi.mocked(useChatStore).mockReturnValue({
-		quickReplies: [],
-		setQuickReplies: vi.fn(),
-		addMessages: mockAddMessages,
-		markMessageAsSent: vi.fn(),
-		isMessageSent: vi.fn(() => false),
-		getThoughts: vi.fn(() => []),
-		scrollPosition: 0,
-		thoughts: [],
+	vi.mocked(useChatMessages).mockReturnValue({
+		messages: [],
+		sendMessage: mockSendMessage,
 	});
 
 	render(
@@ -410,19 +380,7 @@ it("Chat handles send button click", async () => {
 	sendButton.click();
 
 	expect(mockHandleSend).toHaveBeenCalled();
-	expect(mockAddMessages).toHaveBeenCalledWith(
-		expect.arrayContaining([
-			expect.objectContaining({
-				content: "test message",
-				type: "human",
-			}),
-			expect.objectContaining({
-				content: null,
-				type: "ai",
-				inputValue: "test message",
-			}),
-		]),
-	);
+	expect(mockSendMessage).toHaveBeenCalledWith("test message");
 });
 
 it("Chat handles send button click when handleSend returns false", async () => {
