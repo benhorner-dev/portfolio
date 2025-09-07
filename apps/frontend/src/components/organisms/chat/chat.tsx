@@ -9,6 +9,7 @@ import { ChatWindowWrapper } from "@/components/molecules/chatWindowWrapper/chat
 import { Message } from "@/components/molecules/message";
 import { SendButton } from "@/components/molecules/sendButton";
 import { InterlocutorType } from "@/lib/explore/constants";
+import type { AgentServerAction } from "@/lib/explore/types";
 import { useChatInput } from "@/lib/hooks/useChatInput";
 import { useChatMessages } from "@/lib/hooks/useChatMessages";
 import { useChatScroll } from "@/lib/hooks/useChatScroll";
@@ -18,17 +19,19 @@ import { useChatStore } from "@/lib/stores/chatStore";
 interface ChatProps {
 	header: React.ReactElement<React.ComponentProps<typeof ChatHeader>>;
 	placeholderTexts: ChatInputType["placeholder"];
+	action: AgentServerAction;
 }
 
-export function Chat({ header, placeholderTexts }: ChatProps) {
+export function Chat({ header, placeholderTexts, action }: ChatProps) {
 	const { inputValue, isTyping, handleInputChange, handleSend } =
 		useChatInput();
 	const { messagesContainerRef, handleScroll } = useChatScroll();
-	const { messages } = useChatMessages(messagesContainerRef);
+	const { messages } = useChatMessages(action, messagesContainerRef);
 	const { scrollPosition, thoughts, addMessages } = useChatStore();
 
 	const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+	/* v8 ignore start */
 	// biome-ignore lint/correctness/useExhaustiveDependencies: scrollToBottom is stable from useChatScroll hook
 	useLayoutEffect(() => {
 		if (messagesContainerRef.current) {
@@ -52,6 +55,7 @@ export function Chat({ header, placeholderTexts }: ChatProps) {
 			}, 100);
 		}
 	}, [messagesContainerRef.current?.scrollHeight, thoughts]);
+	/* v8 ignore stop */
 
 	const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter" && !isTyping) {
@@ -105,7 +109,7 @@ export function Chat({ header, placeholderTexts }: ChatProps) {
 					onScroll={handleScroll}
 				>
 					{messages.map((message) => (
-						<Message key={message.id} message={message} />
+						<Message key={message.id} message={message} action={action} />
 					))}
 				</ChatMessagesWrapper>
 

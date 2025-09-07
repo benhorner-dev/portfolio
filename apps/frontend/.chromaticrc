@@ -1,0 +1,3 @@
+{
+  "buildCommand": "bun run build-storybook -- --output-dir=storybook-static"
+}

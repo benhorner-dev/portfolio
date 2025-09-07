@@ -1,6 +1,8 @@
 name: E2E Tests
 on:
   pull_request:
+
+
 permissions:
   id-token: write
   contents: read
@@ -101,10 +103,6 @@ jobs:
         env:
           # secretlint-disable-next-line
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
-
-
-
-
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -158,6 +156,8 @@ jobs:
       - name: Run Chromatic (Storybook)
         uses: chromaui/action@latest
         with:
+          buildCommand: bun run build-storybook
+          outputDir: storybook-static
           projectToken: ${{ secrets.CHROMATIC_PROJECT_STORYBOOK_TOKEN }}
           workingDir: apps/frontend
         env:

@@ -5,7 +5,7 @@ import { MessageWrapper } from "@/components/molecules/message/messageWrapper";
 import { Thoughts } from "@/components/molecules/thoughts";
 import { TypingIndicator } from "@/components/molecules/typingIndicator";
 import { InterlocutorType } from "@/lib/explore/constants";
-import type { ChatMessage } from "@/lib/explore/types";
+import type { AgentServerAction, ChatMessage } from "@/lib/explore/types";
 import { useChatInput } from "@/lib/hooks/useChatInput";
 import { useChatMessages } from "@/lib/hooks/useChatMessages";
 import { useChatStore } from "@/lib/stores/chatStore";
@@ -13,10 +13,11 @@ import { MarkdownWrapper } from "../markdownWrapper/markdownWrapper";
 
 interface MessageProps {
 	message: ChatMessage;
+	action: AgentServerAction;
 }
 
-export function Message({ message }: MessageProps) {
-	const { sendMessage } = useChatMessages();
+export function Message({ message, action }: MessageProps) {
+	const { sendMessage } = useChatMessages(action);
 	const { isTyping } = useChatInput();
 	const { addMessages, markMessageAsSent, isMessageSent } = useChatStore();
 

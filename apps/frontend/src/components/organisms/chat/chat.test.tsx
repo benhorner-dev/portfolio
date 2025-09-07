@@ -1,7 +1,18 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import type { StreamableValue } from "@ai-sdk/rsc";
+import {
+	act,
+	cleanup,
+	fireEvent,
+	render,
+	screen,
+} from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { Chat } from "@/components/organisms/chat";
-import type { ChatMessage } from "@/lib/explore/types";
+import type {
+	AgentResponse,
+	AgentServerAction,
+	ChatMessage,
+} from "@/lib/explore/types";
 
 vi.useFakeTimers();
 
@@ -63,6 +74,11 @@ beforeEach(async () => {
 });
 
 const mockHeader = <div data-testid="chat-header">Chat Header</div>;
+const mockAction: AgentServerAction = () =>
+	Promise.resolve({
+		type: "text",
+		text: "Hello",
+	} as StreamableValue<AgentResponse>);
 
 it("Chat renders header", () => {
 	render(
@@ -72,6 +88,7 @@ it("Chat renders header", () => {
 				default: "Type a message",
 				typing: "AI is typing...",
 			}}
+			action={mockAction}
 		/>,
 	);
 
@@ -86,6 +103,7 @@ it("Chat renders input with default placeholder", () => {
 				default: "Type a message",
 				typing: "AI is typing...",
 			}}
+			action={mockAction}
 		/>,
 	);
 
@@ -108,6 +126,7 @@ it("Chat renders input with typing placeholder when isTyping is true", async () 
 				default: "Type a message",
 				typing: "AI is typing...",
 			}}
+			action={mockAction}
 		/>,
 	);
 
@@ -155,6 +174,7 @@ it("Chat renders messages when messages exist", async () => {
 				default: "Type a message",
 				typing: "AI is typing...",
 			}}
+			action={mockAction}
 		/>,
 	);
 
@@ -200,6 +220,7 @@ it("Chat handles quick reply click", async () => {
 				default: "Type a message",
 				typing: "AI is typing...",
 			}}
+			action={mockAction}
 		/>,
 	);
 
@@ -252,6 +273,7 @@ it("Chat handles Enter key press when not typing", async () => {
 				default: "Type a message",
 				typing: "AI is typing...",
 			}}
+			action={mockAction}
 		/>,
 	);
 
@@ -300,6 +322,7 @@ it("Chat does not handle Enter key press when typing", async () => {
 				default: "Type a message",
 				typing: "AI is typing...",
 			}}
+			action={mockAction}
 		/>,
 	);
 
@@ -336,6 +359,7 @@ it("Chat handles non-Enter key press", async () => {
 				default: "Type a message",
 				typing: "AI is typing...",
 			}}
+			action={mockAction}
 		/>,
 	);
 
@@ -378,6 +402,7 @@ it("Chat handles send button click", async () => {
 				default: "Type a message",
 				typing: "AI is typing...",
 			}}
+			action={mockAction}
 		/>,
 	);
 
@@ -426,6 +451,7 @@ it("Chat handles send button click when handleSend returns false", async () => {
 				default: "Type a message",
 				typing: "AI is typing...",
 			}}
+			action={mockAction}
 		/>,
 	);
 
@@ -461,6 +487,7 @@ it("Chat shows typing indicator when isTyping is true and no messages", async ()
 				default: "Type a message",
 				typing: "AI is typing...",
 			}}
+			action={mockAction}
 		/>,
 	);
 
@@ -485,6 +512,7 @@ it("Chat handles input change", async () => {
 				default: "Type a message",
 				typing: "AI is typing...",
 			}}
+			action={mockAction}
 		/>,
 	);
 
@@ -531,6 +559,7 @@ it("Chat clears scroll timeout on multiple renders", async () => {
 				default: "Type a message",
 				typing: "AI is typing...",
 			}}
+			action={mockAction}
 		/>,
 	);
 
@@ -543,6 +572,7 @@ it("Chat clears scroll timeout on multiple renders", async () => {
 				default: "Type a message",
 				typing: "AI is typing...",
 			}}
+			action={mockAction}
 		/>,
 	);
 
