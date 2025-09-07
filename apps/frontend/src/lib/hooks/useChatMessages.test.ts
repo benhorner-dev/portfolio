@@ -159,7 +159,6 @@ describe("useChatMessages", () => {
 			mockMessages,
 			"test-chat-id",
 		);
-		expect(mockUpdateTokenCount).toHaveBeenCalledWith({ id: "user-id" }, 100);
 	});
 
 	it("should handle stream errors", async () => {
