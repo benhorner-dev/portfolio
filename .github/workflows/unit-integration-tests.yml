@@ -2,7 +2,6 @@ name: Unit & Integration Tests
 
 on:
   pull_request:
-  push:
 
 permissions:
   id-token: write
