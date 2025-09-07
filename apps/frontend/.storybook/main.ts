@@ -44,11 +44,15 @@ const config: StorybookConfig = {
 						"node:crypto",
 						"node:net",
 						"node:tls",
+						"node:async_hooks",
+						"node:perf_hooks",
 						"fs",
 						"crypto",
 						"net",
 						"tls",
 						"os",
+						"async_hooks",
+						"perf_hooks",
 					],
 				},
 			};
@@ -60,6 +64,10 @@ const config: StorybookConfig = {
 					...config.resolve?.alias,
 					"@ai-sdk/rsc": require.resolve("./mocks/ai-sdk-rsc.js"),
 					"node:fs": "false",
+					"node:async_hooks": require.resolve("./mocks/async-local-storage.js"),
+					"node:perf_hooks": require.resolve("./mocks/perf-hooks.js"),
+					async_hooks: require.resolve("./mocks/async-local-storage.js"),
+					perf_hooks: require.resolve("./mocks/perf-hooks.js"),
 				},
 			};
 		}
