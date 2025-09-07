@@ -38,8 +38,8 @@ const config: StorybookConfig = {
 				rollupOptions: {
 					...config.build?.rollupOptions,
 					external: [
-						...(config.build?.rollupOptions?.external || []),
-						// Removed @langchain/langgraph from external list to allow mocking
+						...((config.build?.rollupOptions?.external as string[]) || []),
+						// Removed @langchain/langgraph and events from external list to allow normal resolution
 						"node:async_hooks",
 						"node:fs",
 						"node:crypto",
@@ -51,7 +51,6 @@ const config: StorybookConfig = {
 						"async_hooks",
 						"fs",
 						"crypto",
-						"events",
 						"net",
 						"tls",
 						"url",
@@ -76,15 +75,16 @@ const config: StorybookConfig = {
 				alias: {
 					...config.resolve?.alias,
 					"@ai-sdk/rsc": require.resolve("./mocks/ai-sdk-rsc.js"),
-					"node:async_hooks": false,
-					"node:fs": false,
-					redis: false,
-					postgres: false,
-					"neo4j-driver": false,
-					chromadb: false,
-					"@neondatabase/serverless": false,
-					"@vercel/kv": false,
-					"@pinecone-database/pinecone": false,
+					"node:async_hooks": "false",
+					"node:fs": "false",
+					"node:events": "false",
+					redis: "false",
+					postgres: "false",
+					"neo4j-driver": "false",
+					chromadb: "false",
+					"@neondatabase/serverless": "false",
+					"@vercel/kv": "false",
+					"@pinecone-database/pinecone": "false",
 				},
 			};
 		}
