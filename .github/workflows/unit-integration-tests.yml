@@ -46,7 +46,7 @@ jobs:
       - name: Install dependencies
         run: |
             bun install
-
+            bunx playwright install
 
       - name: Set up Database
         env:
