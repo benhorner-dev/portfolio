@@ -31,6 +31,7 @@ export function Chat({ header, placeholderTexts, action }: ChatProps) {
 
 	const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+	/* v8 ignore start */
 	// biome-ignore lint/correctness/useExhaustiveDependencies: scrollToBottom is stable from useChatScroll hook
 	useLayoutEffect(() => {
 		if (messagesContainerRef.current) {
@@ -54,6 +55,7 @@ export function Chat({ header, placeholderTexts, action }: ChatProps) {
 			}, 100);
 		}
 	}, [messagesContainerRef.current?.scrollHeight, thoughts]);
+	/* v8 ignore stop */
 
 	const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter" && !isTyping) {

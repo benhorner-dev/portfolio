@@ -1,5 +1,11 @@
 import type { StreamableValue } from "@ai-sdk/rsc";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+	act,
+	cleanup,
+	fireEvent,
+	render,
+	screen,
+} from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { Chat } from "@/components/organisms/chat";
 import type {
