@@ -1,14 +1,18 @@
 import { readStreamableValue } from "@ai-sdk/rsc";
 import { useCallback } from "react";
-import { agent } from "@/lib/explore/agent";
 import {
 	checkDailyTokenCount,
 	updateTokenCount,
 } from "@/lib/explore/agent/tokenCount";
 import { AgentGraphError } from "@/lib/explore/errors";
-import type { AgentResponse, ChatMessage } from "@/lib/explore/types";
+import type {
+	AgentResponse,
+	AgentServerAction,
+	ChatMessage,
+} from "@/lib/explore/types";
 import { useChatStore } from "@/lib/stores/chatStore";
 export const useChatMessages = (
+	action: AgentServerAction,
 	messagesContainerRef?: React.RefObject<HTMLDivElement | null>,
 ) => {
 	const {
@@ -41,7 +45,7 @@ export const useChatMessages = (
 				if (!message.inputValue) {
 					throw new Error("Message input value is required");
 				}
-				const response = await agent(
+				const response = await action(
 					message.inputValue,
 					config,
 					messages,
@@ -95,6 +99,7 @@ export const useChatMessages = (
 			chatId,
 			messagesContainerRef?.current,
 			config,
+			action,
 		],
 	);
 

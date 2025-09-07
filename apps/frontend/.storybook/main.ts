@@ -29,31 +29,43 @@ const config: StorybookConfig = {
 			global: "globalThis",
 		};
 
-		// Configure for Next.js canary compatibility
+		// Only externalize modules when building Storybook (not during tests)
 		// Check if we're actually building Storybook vs running tests
 		if (process.env.NODE_ENV !== "test" && !process.env.VITEST) {
-			// Minimal externalization for Next.js canary - let Vite handle most modules
+			// Externalize Node.js modules and server-side packages
 			config.build = {
 				...config.build,
 				rollupOptions: {
 					...config.build?.rollupOptions,
 					external: [
-						...((config.build?.rollupOptions?.external as string[]) || []),
-						// Only externalize core Node.js modules that absolutely can't work in browsers
+						...(config.build?.rollupOptions?.external || []),
+						"@langchain/langgraph",
+						"node:async_hooks",
 						"node:fs",
 						"node:crypto",
+						"node:events",
 						"node:net",
 						"node:tls",
-						"node:async_hooks",
-						"node:perf_hooks",
-						"node:os",
+						"node:url",
+						"node:timers/promises",
+						"async_hooks",
 						"fs",
 						"crypto",
+						"events",
 						"net",
 						"tls",
+						"url",
+						"timers",
+						"stream",
 						"os",
-						"async_hooks",
 						"perf_hooks",
+						"redis",
+						"postgres",
+						"neo4j-driver",
+						"chromadb",
+						"@neondatabase/serverless",
+						"@vercel/kv",
+						"@pinecone-database/pinecone",
 					],
 				},
 			};
@@ -63,14 +75,17 @@ const config: StorybookConfig = {
 				...config.resolve,
 				alias: {
 					...config.resolve?.alias,
+					"@langchain/langgraph": false,
 					"@ai-sdk/rsc": require.resolve("./mocks/ai-sdk-rsc.js"),
-					"node:fs": "false",
-					"node:async_hooks": require.resolve("./mocks/async-local-storage.js"),
-					"node:perf_hooks": require.resolve("./mocks/perf-hooks.js"),
-					"node:os": require.resolve("./mocks/os.js"),
-					async_hooks: require.resolve("./mocks/async-local-storage.js"),
-					perf_hooks: require.resolve("./mocks/perf-hooks.js"),
-					os: require.resolve("./mocks/os.js"),
+					"node:async_hooks": false,
+					"node:fs": false,
+					redis: false,
+					postgres: false,
+					"neo4j-driver": false,
+					chromadb: false,
+					"@neondatabase/serverless": false,
+					"@vercel/kv": false,
+					"@pinecone-database/pinecone": false,
 				},
 			};
 		}

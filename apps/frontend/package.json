@@ -87,7 +87,7 @@
 		"vitest": "3.2.4"
 	},
 	"resolutions": {
-		"next": "15.5.1-canary.23",
+		"next": "15.5.1-canary.31",
 		"react": "19.1.1",
 		"react-dom": "19.1.1"
 	}

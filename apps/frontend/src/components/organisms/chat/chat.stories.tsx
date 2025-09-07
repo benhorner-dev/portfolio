@@ -38,6 +38,10 @@ globalThis.Buffer = globalThis.Buffer || {
 	isBuffer: vi.fn(() => false),
 };
 
+vi.mock("@/lib/explore/agent", () => ({
+	agent: vi.fn(),
+}));
+
 vi.mock("@/lib/hooks/useChatMessages", () => ({
 	useChatMessages: vi.fn(() => ({
 		messages: [],

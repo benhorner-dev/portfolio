@@ -20,7 +20,29 @@ export const userInfo = () => ({
 	homedir: "/",
 });
 
-export default {
+// Create a default export that includes all properties
+const os = {
+	platform,
+	arch,
+	cpus,
+	totalmem,
+	freemem,
+	uptime,
+	loadavg,
+	networkInterfaces,
+	homedir,
+	tmpdir,
+	hostname,
+	type,
+	release,
+	userInfo,
+};
+
+// Export as both named exports and default
+export default os;
+
+// Also export the individual properties for named imports
+export {
 	platform,
 	arch,
 	cpus,
