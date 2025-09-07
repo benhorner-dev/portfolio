@@ -212,24 +212,6 @@
 		text-rendering: optimizeLegibility;
 	}
 
-	/* Terminal scanline effect overlay */
-	body::before {
-		content: "";
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background: linear-gradient(
-			rgba(18, 16, 16, 0) 50%,
-			rgba(0, 0, 0, 0.05) 50%
-		);
-		background-size: 100% 4px;
-		pointer-events: none;
-		z-index: 9999;
-		opacity: 0.3;
-	}
-
 	/* Selection colors */
 	::selection {
 		background-color: var(--ctp-lavender);
@@ -302,23 +284,6 @@
 	text-shadow: 0 0 5px var(--ctp-green);
 }
 
-/* Error page specific animations */
-@keyframes error-pulse {
-	0%,
-	100% {
-		opacity: 1;
-		transform: scale(1);
-	}
-	50% {
-		opacity: 0.8;
-		transform: scale(1.02);
-	}
-}
-
-.animate-error-pulse {
-	animation: error-pulse 2s ease-in-out infinite;
-}
-
 @keyframes error-shake {
 	0%,
 	100% {
@@ -343,22 +308,10 @@
 	animation: error-shake 0.5s ease-in-out;
 }
 
-@keyframes terminal-flicker {
-	0%,
-	100% {
-		opacity: 1;
-	}
-	50% {
-		opacity: 0.95;
-	}
-}
-
-.animate-terminal-flicker {
-	animation: terminal-flicker 0.1s infinite;
-}
-
 /* Unix-style borders and frames */
 .terminal-frame {
+	contain: layout style paint;
+
 	border: 1px solid var(--border);
 	border-radius: var(--radius);
 	box-shadow:
@@ -369,46 +322,6 @@
 		var(--background) 0%,
 		color-mix(in oklch, var(--background), var(--ctp-surface0) 5%) 100%
 	);
-}
-
-/* CRT monitor effect */
-.crt-effect {
-	position: relative;
-	overflow: hidden;
-}
-
-.crt-effect::before {
-	content: "";
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background:
-		linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-		linear-gradient(
-			90deg,
-			rgba(255, 0, 0, 0.02),
-			rgba(0, 255, 0, 0.01),
-			rgba(0, 0, 255, 0.02)
-		);
-	background-size:
-		100% 2px,
-		3px 100%;
-	pointer-events: none;
-	animation: crt-flicker 0.15s infinite;
-}
-
-@keyframes crt-flicker {
-	0% {
-		opacity: 0.97;
-	}
-	50% {
-		opacity: 1;
-	}
-	100% {
-		opacity: 0.98;
-	}
 }
 
 /* Terminal prompt styling */
@@ -479,7 +392,7 @@ html {
 
 /* Force overlay scrollbar behavior */
 body {
-	overflow: overlay;
+	overflow: auto;
 }
 
 /* Focus states with terminal glow */
@@ -654,22 +567,5 @@ a:hover {
 	/* Unix-style gradient backgrounds - Only used ones */
 	.bg-unix-cyber {
 		background: linear-gradient(45deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-	}
-
-	/* Terminal grid patterns - Only used ones */
-	.bg-matrix-grid {
-		background-image:
-			repeating-linear-gradient(
-				0deg,
-				var(--ctp-green) 0,
-				transparent 1px,
-				transparent 20px
-			),
-			repeating-linear-gradient(
-				90deg,
-				var(--ctp-green) 0,
-				transparent 1px,
-				transparent 20px
-			);
 	}
 }

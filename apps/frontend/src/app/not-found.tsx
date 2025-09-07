@@ -16,7 +16,7 @@ export default function NotFound() {
 							<div className="animate-error-shake">
 								<TypographyH1 text="404" />
 							</div>
-							<div className="terminal-prompt text-left animate-terminal-flicker">
+							<div className="terminal-prompt text-left">
 								<span className="text-ctp-red">error:</span> page not found
 							</div>
 						</div>
