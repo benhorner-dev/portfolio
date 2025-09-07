@@ -39,7 +39,7 @@ it("Message renders user message with right alignment", () => {
 		thoughts: [],
 	};
 
-	render(<Message message={mockMessage} />);
+	render(<Message message={mockMessage} action={vi.fn()} />);
 
 	const message = screen.getByText("User message");
 	expect(message).toBeInTheDocument();
@@ -54,7 +54,7 @@ it("Message renders bot message with left alignment", () => {
 		thoughts: [],
 	};
 
-	render(<Message message={mockMessage} />);
+	render(<Message message={mockMessage} action={vi.fn()} />);
 
 	expect(screen.getByText("Bot message")).toBeInTheDocument();
 });
@@ -68,7 +68,7 @@ it("Message renders with content", () => {
 		thoughts: [],
 	};
 
-	render(<Message message={mockMessage} />);
+	render(<Message message={mockMessage} action={vi.fn()} />);
 
 	expect(screen.getByText("Bot message")).toBeInTheDocument();
 });
@@ -82,7 +82,7 @@ it("Message renders without errors", () => {
 		thoughts: [],
 	};
 
-	render(<Message message={mockMessage} />);
+	render(<Message message={mockMessage} action={vi.fn()} />);
 
 	expect(screen.getByText("Bot message")).toBeInTheDocument();
 });
@@ -105,7 +105,9 @@ it("Message renders with typing state", async () => {
 		quickReplies: ["Reply 1", "Reply 2"],
 	};
 
-	const { container } = render(<Message message={mockMessage} />);
+	const { container } = render(
+		<Message message={mockMessage} action={vi.fn()} />,
+	);
 
 	expect(screen.getByText("Typing message")).toBeInTheDocument();
 
@@ -114,4 +116,71 @@ it("Message renders with typing state", async () => {
 
 	expect(container.innerHTML).toContain("bg-card/20");
 	expect(container.innerHTML).toContain("text-muted-foreground");
+});
+
+it("Message triggers sendMessage when content is null and not sent", async () => {
+	const mockSendMessage = vi.fn();
+	const mockMarkMessageAsSent = vi.fn();
+	const mockIsMessageSent = vi.fn(() => false);
+
+	const { useChatMessages } = await import("@/lib/hooks/useChatMessages");
+	vi.mocked(useChatMessages).mockReturnValue({
+		messages: [],
+		sendMessage: mockSendMessage,
+	});
+
+	const { useChatStore } = await import("@/lib/stores/chatStore");
+	vi.mocked(useChatStore).mockReturnValue({
+		quickReplies: [],
+		setQuickReplies: vi.fn(),
+		addMessages: vi.fn(),
+		markMessageAsSent: mockMarkMessageAsSent,
+		isMessageSent: mockIsMessageSent,
+		getThoughts: vi.fn(() => []),
+	});
+
+	const mockMessage = {
+		id: "null-content-1",
+		content: null,
+		timestamp: new Date().toISOString(),
+		type: InterlocutorType.AI,
+		thoughts: [],
+	};
+
+	render(<Message message={mockMessage} action={vi.fn()} />);
+
+	expect(mockIsMessageSent).toHaveBeenCalledWith("null-content-1");
+	expect(mockMarkMessageAsSent).toHaveBeenCalledWith("null-content-1");
+	expect(mockSendMessage).toHaveBeenCalledWith(mockMessage);
+});
+
+it("Message renders thoughts when thoughts exist", async () => {
+	const mockThoughts = ["thought1", "thought2"];
+
+	const { useChatStore } = await import("@/lib/stores/chatStore");
+	vi.mocked(useChatStore).mockReturnValue({
+		quickReplies: [],
+		setQuickReplies: vi.fn(),
+		addMessages: vi.fn(),
+		markMessageAsSent: vi.fn(),
+		isMessageSent: vi.fn(() => false),
+		getThoughts: vi.fn(() => mockThoughts),
+	});
+
+	const mockMessage = {
+		id: "thoughts-1",
+		content: "Message with thoughts",
+		timestamp: new Date().toISOString(),
+		type: InterlocutorType.AI,
+		thoughts: [],
+	};
+
+	const { container } = render(
+		<Message message={mockMessage} action={vi.fn()} />,
+	);
+
+	expect(
+		container.querySelector('[data-slot="accordion"]'),
+	).toBeInTheDocument();
+	expect(container.innerHTML).toContain("🧠");
 });

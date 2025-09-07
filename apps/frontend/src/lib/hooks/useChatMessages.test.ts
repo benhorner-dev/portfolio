@@ -5,6 +5,7 @@ import {
 	checkDailyTokenCount,
 	updateTokenCount,
 } from "@/lib/explore/agent/tokenCount";
+import { InterlocutorType } from "@/lib/explore/constants";
 import { AgentGraphError } from "@/lib/explore/errors";
 import { useChatStore } from "@/lib/stores/chatStore";
 import { useChatMessages } from "./useChatMessages";
@@ -22,6 +23,7 @@ const mockMessages = [
 	{
 		id: "1",
 		content: "Hello",
+		type: InterlocutorType.HUMAN,
 		inputValue: "Hello",
 		thoughts: [],
 		quickReplies: [],
@@ -52,12 +54,26 @@ describe("useChatMessages", () => {
 		mockGetState.mockReturnValue({
 			setScrollPosition: vi.fn(),
 		});
-		mockCheckDailyTokenCount.mockResolvedValue({ id: "user-id" });
-		mockUpdateTokenCount.mockResolvedValue(undefined);
+		mockCheckDailyTokenCount.mockResolvedValue({
+			id: "user-id",
+			name: null,
+			email: "test@example.com",
+			tokens: 0,
+			authId: "auth-id",
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		});
+		mockUpdateTokenCount.mockResolvedValue({
+			id: "user-id",
+			name: null,
+			email: "test@example.com",
+			tokens: 100,
+			authId: "auth-id",
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		});
 		const mockAsyncIterable = {
-			async *[Symbol.asyncIterator]() {
-				// Empty async iterable
-			},
+			async *[Symbol.asyncIterator]() {},
 		};
 		mockReadStreamableValue.mockReturnValue(mockAsyncIterable);
 	});
@@ -174,7 +190,8 @@ describe("useChatMessages", () => {
 			await result.current.sendMessage(mockMessages[0]);
 		});
 
-		expect(mockUseChatStore().updateMessage).toHaveBeenCalledWith(
+		const mockStore = mockUseChatStore.mock.results[0].value;
+		expect(mockStore.updateMessage).toHaveBeenCalledWith(
 			mockMessages[0].id,
 			expect.objectContaining({
 				content: "User facing error",

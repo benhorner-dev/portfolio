@@ -52,6 +52,11 @@ jobs:
             bun install
             bunx playwright install
 
+      - name: Clear Vite cache
+        run: |
+            rm -rf apps/frontend/node_modules/.cache
+            rm -rf apps/frontend/.next
+
       - name: Set up Database
         env:
           # secretlint-disable-next-line
