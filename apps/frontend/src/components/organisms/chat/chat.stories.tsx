@@ -32,6 +32,12 @@ vi.mock("redis", () => ({
 	})),
 }));
 
+vi.mock("@neondatabase/serverless", () => ({
+	neon: vi.fn(() => ({
+		sql: vi.fn(),
+	})),
+}));
+
 globalThis.Buffer = globalThis.Buffer || {
 	from: vi.fn(),
 	alloc: vi.fn(),
@@ -49,6 +55,14 @@ vi.mock("@/lib/hooks/useChatMessages", () => ({
 	})),
 }));
 
+const mockAction = vi.fn().mockResolvedValue({
+	value: {
+		content: "Mock response",
+		thoughts: [],
+		quickReplies: [],
+	},
+});
+
 const meta: Meta<typeof Chat> = {
 	title: "Organisms/Chat",
 	component: Chat,
@@ -61,6 +75,9 @@ const meta: Meta<typeof Chat> = {
 			control: { type: "object" },
 		},
 		placeholderTexts: {
+			control: { type: "object" },
+		},
+		action: {
 			control: { type: "object" },
 		},
 	},
@@ -81,6 +98,7 @@ export const Default: Story = {
 			default: "Type your message here...",
 			typing: "Ben is typing...",
 		},
+		action: mockAction,
 	},
 };
 
@@ -96,6 +114,7 @@ export const WithCustomPlaceholders: Story = {
 			default: "Ask us anything...",
 			typing: "Agent is responding...",
 		},
+		action: mockAction,
 	},
 };
 
@@ -113,5 +132,6 @@ export const WithLongHeader: Story = {
 			default: "Describe your issue here...",
 			typing: "Support agent is typing...",
 		},
+		action: mockAction,
 	},
 };

@@ -6,7 +6,7 @@ import { dirname, join } from "path";
  * This function is used to resolve the absolute path of a package.
  * It is needed in projects that use Yarn PnP or are set up within a monorepo.
  */
-function getAbsolutePath(value: string): any {
+function getAbsolutePath(value: string): string {
 	return dirname(require.resolve(join(value, "package.json")));
 }
 const config: StorybookConfig = {
@@ -22,7 +22,7 @@ const config: StorybookConfig = {
 		name: getAbsolutePath("@storybook/nextjs-vite"),
 		options: {},
 	},
-	viteFinal: async (config, { configType }) => {
+	viteFinal: async (config) => {
 		// Configure Vite for Storybook
 		config.define = {
 			...config.define,
@@ -38,7 +38,9 @@ const config: StorybookConfig = {
 				rollupOptions: {
 					...config.build?.rollupOptions,
 					external: [
-						...(config.build?.rollupOptions?.external || []),
+						...(Array.isArray(config.build?.rollupOptions?.external)
+							? config.build.rollupOptions.external
+							: []),
 						"@langchain/langgraph",
 						"node:async_hooks",
 						"node:fs",
@@ -63,7 +65,6 @@ const config: StorybookConfig = {
 						"postgres",
 						"neo4j-driver",
 						"chromadb",
-						"@neondatabase/serverless",
 						"@vercel/kv",
 						"@pinecone-database/pinecone",
 					],
@@ -75,17 +76,10 @@ const config: StorybookConfig = {
 				...config.resolve,
 				alias: {
 					...config.resolve?.alias,
-					"@langchain/langgraph": false,
 					"@ai-sdk/rsc": require.resolve("./mocks/ai-sdk-rsc.js"),
-					"node:async_hooks": false,
-					"node:fs": false,
-					redis: false,
-					postgres: false,
-					"neo4j-driver": false,
-					chromadb: false,
-					"@neondatabase/serverless": false,
-					"@vercel/kv": false,
-					"@pinecone-database/pinecone": false,
+					"@neondatabase/serverless": require.resolve(
+						"./mocks/neondatabase-serverless.js",
+					),
 				},
 			};
 		}

@@ -30,6 +30,12 @@ vi.mock("redis", () => ({
 	})),
 }));
 
+vi.mock("@neondatabase/serverless", () => ({
+	neon: vi.fn(() => ({
+		sql: vi.fn(),
+	})),
+}));
+
 globalThis.Buffer = globalThis.Buffer || {
 	from: vi.fn(),
 	alloc: vi.fn(),
@@ -45,6 +51,14 @@ vi.mock("@/lib/hooks/useChatMessages", () => ({
 		sendMessage: vi.fn(),
 	})),
 }));
+
+const mockAction = vi.fn().mockResolvedValue({
+	value: {
+		content: "Mock response",
+		thoughts: [],
+		quickReplies: [],
+	},
+});
 
 const meta: Meta<typeof Message> = {
 	title: "Molecules/Message",
@@ -68,6 +82,7 @@ export const UserMessage: Story = {
 			thoughts: [],
 			quickReplies: [],
 		},
+		action: mockAction,
 	},
 };
 
@@ -81,6 +96,7 @@ export const BotMessage: Story = {
 			thoughts: [],
 			quickReplies: [],
 		},
+		action: mockAction,
 	},
 };
 
@@ -94,6 +110,7 @@ export const WithQuickReplies: Story = {
 			thoughts: [],
 			quickReplies: ["Product Info", "Pricing", "Support", "Contact"],
 		},
+		action: mockAction,
 	},
 };
 
@@ -108,6 +125,7 @@ export const LongMessage: Story = {
 			thoughts: [],
 			quickReplies: [],
 		},
+		action: mockAction,
 	},
 };
 
@@ -121,5 +139,6 @@ export const TypingMessage: Story = {
 			thoughts: [],
 			quickReplies: [],
 		},
+		action: mockAction,
 	},
 };
