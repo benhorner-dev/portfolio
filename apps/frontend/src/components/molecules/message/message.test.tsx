@@ -106,7 +106,7 @@ it("Message renders with typing state", async () => {
 	};
 
 	const { container } = render(
-		<Message message={mockMessage} action={vi.fn()} />,
+		<Message message={mockMessage} onQuickReply={vi.fn()} />,
 	);
 
 	expect(screen.getByText("Typing message")).toBeInTheDocument();
@@ -178,7 +178,7 @@ it("Message renders thoughts when thoughts exist", async () => {
 	};
 
 	const { container } = render(
-		<Message message={mockMessage} action={vi.fn()} />,
+		<Message message={mockMessage} onQuickReply={vi.fn()} />,
 	);
 
 	expect(
