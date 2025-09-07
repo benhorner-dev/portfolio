@@ -46,7 +46,7 @@ jobs:
       - name: Install dependencies
         run: |
             bun install
-            bunx playwright install chromium --with-deps
+
 
       - name: Set up Database
         env:
