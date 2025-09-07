@@ -46,6 +46,7 @@ const config: StorybookConfig = {
 						"node:tls",
 						"node:async_hooks",
 						"node:perf_hooks",
+						"node:os",
 						"fs",
 						"crypto",
 						"net",
@@ -66,8 +67,10 @@ const config: StorybookConfig = {
 					"node:fs": "false",
 					"node:async_hooks": require.resolve("./mocks/async-local-storage.js"),
 					"node:perf_hooks": require.resolve("./mocks/perf-hooks.js"),
+					"node:os": require.resolve("./mocks/os.js"),
 					async_hooks: require.resolve("./mocks/async-local-storage.js"),
 					perf_hooks: require.resolve("./mocks/perf-hooks.js"),
+					os: require.resolve("./mocks/os.js"),
 				},
 			};
 		}
