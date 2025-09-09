@@ -127,26 +127,3 @@ export const useChatMessages = (
 
 	return { messages, sendMessage };
 };
-
-// messagesContainerRef?: React.RefObject<HTMLDivElement | null>,
-// ) => {
-// 	const {
-// 		messages,
-// 		setIsTyping,
-// 		updateMessage,
-// 		updateThoughts,
-// 		chatId,
-// 		config,
-// 	} = useChatStore();
-
-// 	const sendMessage = useCallback(
-// 		async (message: ChatMessage) => {
-// 			const newMessage = { ...message };
-// 			try {
-// 				if (!chatId) {
-// 					throw new AgentGraphError("Chat ID is required");
-// 				}
-// 				if (!config) {
-// 					throw new AgentGraphError("Config is required");
-// 				}
-// 				const user = await checkDailyTokenCount(chatId);

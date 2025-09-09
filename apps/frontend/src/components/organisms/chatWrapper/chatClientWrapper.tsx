@@ -16,6 +16,16 @@ interface ChatClientWrapperProps {
 	chatId?: string;
 }
 
+const Chat = dynamic(
+	() =>
+		import("@/components/organisms/chat").then((mod) => ({
+			default: mod.Chat,
+		})),
+	{
+		ssr: false,
+	},
+);
+
 export function ChatClientWrapper({
 	chatId,
 	header,
@@ -28,17 +38,6 @@ export function ChatClientWrapper({
 		}
 		useChatStore.getState().setConfig(config);
 	}, [chatId, config]);
-
-	const Chat = dynamic(
-		() =>
-			import("@/components/organisms/chat").then((mod) => ({
-				default: mod.Chat,
-			})),
-		{
-			ssr: false,
-			loading: () => null,
-		},
-	);
 
 	return (
 		<ErrorBoundary fallback={ErrorFallback}>
