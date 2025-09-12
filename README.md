@@ -225,6 +225,64 @@ turbo test
 
 ## 🏗️ Development Workflow
 
+### Pre-commit Hooks (Lefthook)
+
+This project uses **Lefthook** for pre-commit hooks to ensure code quality and consistency before commits are made:
+
+#### Installation
+
+1. **Install Lefthook globally**:
+
+   ```bash
+   # Using Homebrew (macOS)
+   brew install lefthook
+
+   # Using npm
+   npm install -g @arkweid/lefthook
+
+   # Using curl
+   curl -1sLf 'https://git.io/lefthook' | bash -s
+   ```
+
+2. **Install hooks in the project**:
+   ```bash
+   lefthook install
+   ```
+
+#### Available Hooks
+
+The following hooks run automatically before each commit:
+
+- **Linting**: Runs Biome linting on staged files
+- **Formatting**: Ensures code follows project formatting standards
+- **Type Checking**: Validates TypeScript types
+- **Test Execution**: Runs relevant tests for changed files
+- **Commit Message Validation**: Ensures conventional commit format
+
+#### Manual Hook Execution
+
+You can run hooks manually without committing:
+
+```bash
+# Run all pre-commit hooks
+lefthook run pre-commit
+
+# Run specific hook
+lefthook run pre-commit --hook lint
+
+# Skip hooks for a commit (not recommended)
+git commit --no-verify -m "feat: add feature"
+```
+
+#### Configuration
+
+Lefthook configuration is defined in `.lefthook.yml` and includes:
+
+- **Parallel Execution**: Hooks run in parallel for faster execution
+- **File Filtering**: Only runs on relevant file types
+- **Error Handling**: Stops commit if any hook fails
+- **Performance**: Optimized for monorepo structure
+
 ### Code Quality Standards
 
 - **TypeScript**: Strict mode enabled, no `any` types allowed
