@@ -100,8 +100,8 @@ export const useChatMessages = (
 						...newMessage,
 					});
 				}
-				await updateTokenCount(user, tokens);
 				setIsTyping(false);
+				await updateTokenCount(user, tokens);
 			} catch (error) {
 				setIsTyping(false);
 				if ((error as Error)?.name.includes("UserFacingErrors")) {
