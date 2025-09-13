@@ -2,7 +2,7 @@ import { Button } from "@/components/atoms/button";
 import { MessageWrapper } from "@/components/molecules/message/messageWrapper";
 import { Thoughts } from "@/components/molecules/thoughts";
 import { InterlocutorType } from "@/lib/explore/constants";
-import type { AgentServerAction, ChatMessage } from "@/lib/explore/types";
+import type { ChatMessage } from "@/lib/explore/types";
 import { useChatInput } from "@/lib/hooks/useChatInput";
 import { useChatStore } from "@/lib/stores/chatStore";
 import { MarkdownWrapper } from "../markdownWrapper/markdownWrapper";

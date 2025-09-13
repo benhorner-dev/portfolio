@@ -24,6 +24,7 @@ interface ChatState {
 	setChatId: (chatId: string) => void;
 	config: AgentConfig | undefined;
 	setConfig: (config: AgentConfig) => void;
+	batchUpdate: (updates: Partial<ChatState>) => void;
 }
 
 const initialMessages: ChatMessage[] = [
@@ -83,4 +84,5 @@ export const useChatStore = create<ChatState>((set, get) => ({
 			thoughts: { ...state.thoughts, [messageId]: thoughts },
 		})),
 	getThoughts: (messageId) => get().thoughts[messageId] || [],
+	batchUpdate: (updates) => set(updates),
 }));
