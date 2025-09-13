@@ -50,10 +50,12 @@ describe("useChatMessages", () => {
 			chatId: "test-chat-id",
 			config: mockConfig,
 			addMessages: vi.fn(),
+			batchUpdate: vi.fn(),
 		});
 		mockUseChatStore.getState = mockGetState;
 		mockGetState.mockReturnValue({
 			setScrollPosition: vi.fn(),
+			batchUpdate: vi.fn(),
 		});
 		mockCheckDailyTokenCount.mockResolvedValue({
 			id: "user-id",

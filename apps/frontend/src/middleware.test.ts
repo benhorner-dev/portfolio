@@ -81,6 +81,7 @@ describe("middleware", () => {
 			const mockAuth0Response = NextResponse.redirect(
 				"https://example.com/login",
 			);
+			// @ts-expect-error - mockResolvedValue is not typed
 			vi.mocked(auth0.middleware).mockResolvedValue(mockAuth0Response);
 
 			const request = new NextRequest("https://example.com/dashboard");
@@ -92,9 +93,8 @@ describe("middleware", () => {
 
 		it("calls Auth0 middleware and applies security headers when Auth0 returns undefined", async () => {
 			const { auth0 } = await import("./lib/identity/auth0");
-			vi.mocked(auth0.middleware).mockResolvedValue(
-				undefined as unknown as NextResponse,
-			);
+			// @ts-expect-error - mockResolvedValue is not typed
+			vi.mocked(auth0.middleware).mockResolvedValue(undefined);
 
 			const request = new NextRequest("https://example.com/dashboard");
 			const response = await middleware(request);

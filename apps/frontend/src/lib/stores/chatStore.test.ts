@@ -169,4 +169,29 @@ describe("chatStore", () => {
 		useChatStore.getState().setScrollPosition(100);
 		useChatStore.getState().resetChat();
 	});
+
+	it("performs batch update", () => {
+		useChatStore.getState().batchUpdate({
+			inputValue: "batch input",
+			isTyping: true,
+			scrollPosition: 200,
+			chatId: "batch-chat-id",
+			config: {
+				model: "gpt-4",
+				temperature: 0.8,
+				maxTokens: 2000,
+			} as unknown as AgentConfig,
+		});
+
+		const state = useChatStore.getState();
+		expect(state.inputValue).toBe("batch input");
+		expect(state.isTyping).toBe(true);
+		expect(state.scrollPosition).toBe(200);
+		expect(state.chatId).toBe("batch-chat-id");
+		expect(state.config).toEqual({
+			model: "gpt-4",
+			temperature: 0.8,
+			maxTokens: 2000,
+		});
+	});
 });

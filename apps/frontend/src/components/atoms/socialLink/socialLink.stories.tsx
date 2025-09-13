@@ -6,6 +6,9 @@ const meta: Meta<typeof SocialLink> = {
 	component: SocialLink,
 	parameters: {
 		layout: "centered",
+		nextjs: {
+			appDirectory: true,
+		},
 	},
 	tags: ["autodocs"],
 	argTypes: {

@@ -23,11 +23,11 @@ export const useChatMessages = (
 		updateThoughts,
 		chatId,
 		config,
-		addMessages,
 	} = useChatStore();
 
 	const sendMessage = useCallback(
 		async (message: string) => {
+			setIsTyping(true);
 			if (!message.trim()) {
 				throw new Error("Message input value is required");
 			}
@@ -47,17 +47,20 @@ export const useChatMessages = (
 				if (!config) {
 					throw new AgentGraphError("Config is required");
 				}
-				addMessages([
-					{
-						id: crypto.randomUUID(),
-						content: message,
-						type: InterlocutorType.HUMAN,
-						timestamp: new Date().toISOString(),
-						thoughts: [],
-						quickReplies: [],
-					},
-					newMessage,
-				]);
+				const humanMessage = {
+					id: crypto.randomUUID(),
+					content: message,
+					type: InterlocutorType.HUMAN,
+					timestamp: new Date().toISOString(),
+					thoughts: [],
+					quickReplies: [],
+				};
+				useChatStore.getState().batchUpdate({
+					messages: [...messages, humanMessage, newMessage],
+					isTyping: true,
+					scrollPosition: messagesContainerRef?.current?.scrollTop || 0,
+				});
+
 				const user = await checkDailyTokenCount(chatId);
 				if (messagesContainerRef?.current) {
 					const { setScrollPosition } = useChatStore.getState();
@@ -120,7 +123,6 @@ export const useChatMessages = (
 			chatId,
 			config,
 			action,
-			addMessages,
 			messagesContainerRef,
 		],
 	);
