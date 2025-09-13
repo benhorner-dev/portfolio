@@ -1,5 +1,5 @@
+import path, { dirname, join } from "node:path";
 import type { StorybookConfig } from "@storybook/nextjs-vite";
-import path, { dirname, join } from "path";
 
 /**
  * This function is used to resolve the absolute path of a package.
@@ -19,7 +19,9 @@ const config: StorybookConfig = {
 	],
 	framework: {
 		name: getAbsolutePath("@storybook/nextjs-vite"),
-		options: {},
+		options: {
+			nextConfigPath: path.resolve(__dirname, "../next.config.js"),
+		},
 	},
 	viteFinal: async (config) => {
 		// Use a unique cache directory to prevent conflicts with other Vite instances
@@ -33,6 +35,21 @@ const config: StorybookConfig = {
 		config.optimizeDeps = {
 			...config.optimizeDeps,
 			include: ["react", "react-dom", "axe-core"],
+		};
+
+		// Mock Next.js components for Storybook compatibility
+		config.define = {
+			...config.define,
+			"process.env.NODE_ENV": JSON.stringify("development"),
+		};
+
+		config.resolve = {
+			...config.resolve,
+			alias: {
+				...config.resolve?.alias,
+				"next/image": path.resolve(__dirname, "./mock-image.tsx"),
+				"next/link": path.resolve(__dirname, "./mock-link.tsx"),
+			},
 		};
 
 		return config;
