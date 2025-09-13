@@ -31,10 +31,10 @@ const config: StorybookConfig = {
 			"../node_modules/.cache/storybook-vite",
 		);
 
-		// Ensure proper module resolution in CI environments
 		config.optimizeDeps = {
 			...config.optimizeDeps,
 			include: ["react", "react-dom", "axe-core"],
+			force: process.env.CI === "true",
 		};
 
 		// Mock Next.js components for Storybook compatibility
@@ -51,6 +51,20 @@ const config: StorybookConfig = {
 				"next/link": path.resolve(__dirname, "./mock-link.tsx"),
 			},
 		};
+
+		// Ensure proper handling of dynamic imports in CI
+		if (process.env.CI === "true") {
+			config.build = {
+				...config.build,
+				rollupOptions: {
+					...config.build?.rollupOptions,
+					output: {
+						...config.build?.rollupOptions?.output,
+						manualChunks: undefined, // Disable manual chunking in CI
+					},
+				},
+			};
+		}
 
 		return config;
 	},

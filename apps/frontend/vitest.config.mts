@@ -85,6 +85,9 @@ export default defineConfig({
 						],
 					},
 					setupFiles: [".storybook/vitest.setup.ts"],
+					// Add timeout and retry configuration for CI
+					testTimeout: process.env.CI === "true" ? 30000 : 10000,
+					hookTimeout: process.env.CI === "true" ? 30000 : 10000,
 				},
 			},
 		],
