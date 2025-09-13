@@ -46,7 +46,7 @@
 		"lucide-react": "0.544.0",
 		"neo4j-driver": "5.28.1",
 		"neogma": "1.14.1",
-		"next": "15.5.3",
+		"next": "15.6.0-canary.5",
 		"pino": "9.9.5",
 		"postgres": "3.4.7",
 		"posthog-js": "1.265.0",
