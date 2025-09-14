@@ -425,6 +425,21 @@ body {
 	}
 }
 
+/* Tablet and desktop - minimal padding */
+@media (min-width: 769px) {
+	nav a {
+		padding: 0.25rem 0.5rem !important;
+		font-size: 0.875rem !important;
+	}
+}
+
+@media (min-width: 1024px) {
+	nav a {
+		padding: 0.25rem 0.75rem !important;
+		font-size: 1rem !important;
+	}
+}
+
 /* Extra small screens (< 500px) */
 @media (max-width: 500px) {
 	nav {
