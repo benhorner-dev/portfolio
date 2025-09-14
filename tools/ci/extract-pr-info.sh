@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+BRANCH_DETECTION_FAILED="false"
 
 EVENT_NAME="${1:-}"
 GITHUB_TOKEN="${2:-}"
