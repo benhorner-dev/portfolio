@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useEffect } from "react";
 import { Input } from "@/components/atoms/input";
 import type { ChatHeader } from "@/components/molecules/chatHeader";
 import { ChatInput } from "@/components/molecules/chatInput";
@@ -25,39 +25,18 @@ interface ChatProps {
 export function Chat({ header, placeholderTexts, action }: ChatProps) {
 	const { inputValue, isTyping, handleInputChange, handleSend } =
 		useChatInput();
-	const { messagesContainerRef, handleScroll } = useChatScroll();
+	const { messagesContainerRef, scrollToBottom } = useChatScroll();
 	const { messages, sendMessage } = useChatMessages(
 		action,
 		messagesContainerRef,
 	);
-	const { thoughts, scrollPosition } = useChatStore();
-	const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-	/* v8 ignore start */
+	const { thoughts } = useChatStore();
+
 	// biome-ignore lint/correctness/useExhaustiveDependencies: scrollToBottom is stable from useChatScroll hook
-	useLayoutEffect(() => {
-		if (messagesContainerRef.current) {
-			messagesContainerRef.current.scrollTop = scrollPosition;
-
-			if (scrollTimeoutRef.current) {
-				clearTimeout(scrollTimeoutRef.current);
-			}
-
-			scrollTimeoutRef.current = setTimeout(() => {
-				if (messagesContainerRef.current) {
-					const maxScroll =
-						messagesContainerRef.current.scrollHeight -
-						messagesContainerRef.current.clientHeight;
-
-					messagesContainerRef.current.scrollTo({
-						top: maxScroll,
-						behavior: "smooth",
-					});
-				}
-			}, 100);
-		}
-	}, [messagesContainerRef.current?.scrollHeight, thoughts]);
-	/* v8 ignore stop */
+	useEffect(() => {
+		scrollToBottom();
+	}, [messages, thoughts]);
 
 	const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter" && !isTyping) {
@@ -92,10 +71,7 @@ export function Chat({ header, placeholderTexts, action }: ChatProps) {
 		<ChatWindowWrapper data-auth-required="true">
 			<div className="bg-card/30 backdrop-blur-sm rounded-2xl border border-border/20 shadow-2xl overflow-hidden hover:animate-terminal-glow transition-all duration-500">
 				{header}
-				<ChatMessagesWrapper
-					messagesContainerRef={messagesContainerRef}
-					onScroll={handleScroll}
-				>
+				<ChatMessagesWrapper messagesContainerRef={messagesContainerRef}>
 					{messages.map((message) => (
 						<span key={message.id}>
 							{message.content === null && (

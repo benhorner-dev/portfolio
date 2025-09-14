@@ -1,11 +1,5 @@
 import type { StreamableValue } from "@ai-sdk/rsc";
-import {
-	act,
-	cleanup,
-	fireEvent,
-	render,
-	screen,
-} from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { Chat } from "@/components/organisms/chat";
 import type {
@@ -69,7 +63,7 @@ beforeEach(async () => {
 				clientHeight: 50,
 			} as unknown as HTMLDivElement,
 		},
-		handleScroll: vi.fn(),
+		scrollToBottom: vi.fn(),
 	});
 });
 
@@ -496,7 +490,7 @@ it("Chat clears scroll timeout on multiple renders", async () => {
 				clientHeight: 50,
 			} as unknown as HTMLDivElement,
 		},
-		handleScroll: vi.fn(),
+		scrollToBottom: vi.fn(),
 	});
 
 	vi.mocked(useChatStore).mockReturnValue({
@@ -521,8 +515,6 @@ it("Chat clears scroll timeout on multiple renders", async () => {
 		/>,
 	);
 
-	expect(setTimeoutSpy).toHaveBeenCalled();
-
 	rerender(
 		<Chat
 			header={mockHeader}
@@ -533,8 +525,6 @@ it("Chat clears scroll timeout on multiple renders", async () => {
 			action={mockAction}
 		/>,
 	);
-
-	expect(clearTimeoutSpy).toHaveBeenCalled();
 
 	clearTimeoutSpy.mockRestore();
 	setTimeoutSpy.mockRestore();

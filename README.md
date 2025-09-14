@@ -680,7 +680,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) f
 ## 📞 Contact
 
 - **Email**: [ben@benhorner.dev](mailto:ben@benhorner.dev)
-- **LinkedIn**: [Ben Horner](https://linkedin.com/in/benhorner)
+- **LinkedIn**: [Ben Horner](https://www.linkedin.com/in/ben-horner-dev)
 - **GitHub**: [@benhorner-dev](https://github.com/benhorner-dev)
 
 ---
