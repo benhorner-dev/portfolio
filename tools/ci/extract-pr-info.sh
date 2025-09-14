@@ -44,31 +44,36 @@ if [[ "$EVENT_NAME" == "deployment_status" ]]; then
         BRANCH_NAME="${BASH_REMATCH[1]}"
         echo "🔍 Extracted branch from description: $BRANCH_NAME"
       else
-        echo "❌ Could not determine branch name"
-        exit 1
+        echo "⚠️ Could not determine branch name - will skip later stages"
+        BRANCH_NAME="unknown"
+        PR_NUMBER="unknown"
+        NEON_BRANCH_NAME="unknown"
+        BRANCH_DETECTION_FAILED="true"
       fi
     else
       echo "✅ Found branch name: $BRANCH_NAME"
     fi
 
-    if [[ "$BRANCH_NAME" =~ pr-([0-9]+) ]] || [[ "$BRANCH_NAME" =~ ([0-9]+) ]]; then
-      PR_NUMBER="${BASH_REMATCH[1]}"
-      echo "✅ Extracted PR number from branch name: $PR_NUMBER"
-    else
-      PR_RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-        "https://api.github.com/repos/$GITHUB_REPOSITORY/pulls?head=$GITHUB_REPOSITORY_OWNER:$BRANCH_NAME&state=open")
-
-      PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.[0].number // empty')
-
-      if [[ -n "$PR_NUMBER" && "$PR_NUMBER" != "null" ]]; then
-        echo "✅ Found PR number from API: $PR_NUMBER"
+    if [[ "$BRANCH_DETECTION_FAILED" != "true" ]]; then
+      if [[ "$BRANCH_NAME" =~ pr-([0-9]+) ]] || [[ "$BRANCH_NAME" =~ ([0-9]+) ]]; then
+        PR_NUMBER="${BASH_REMATCH[1]}"
+        echo "✅ Extracted PR number from branch name: $PR_NUMBER"
       else
-        echo "⚠️ Could not find PR number, using 'unknown'"
-        PR_NUMBER="unknown"
-      fi
-    fi
+        PR_RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          "https://api.github.com/repos/$GITHUB_REPOSITORY/pulls?head=$GITHUB_REPOSITORY_OWNER:$BRANCH_NAME&state=open")
 
-    NEON_BRANCH_NAME="preview/$BRANCH_NAME"
+        PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.[0].number // empty')
+
+        if [[ -n "$PR_NUMBER" && "$PR_NUMBER" != "null" ]]; then
+          echo "✅ Found PR number from API: $PR_NUMBER"
+        else
+          echo "⚠️ Could not find PR number, using 'unknown'"
+          PR_NUMBER="unknown"
+        fi
+      fi
+
+      NEON_BRANCH_NAME="preview/$BRANCH_NAME"
+    fi
 
 elif [[ "$EVENT_NAME" == "pull_request" ]]; then
     PR_NUMBER="$PR_NUMBER_FROM_EVENT"
@@ -84,10 +89,12 @@ if [ -n "${GITHUB_OUTPUT:-}" ]; then
     echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
     echo "branch=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
     echo "neon_branch_name=$NEON_BRANCH_NAME" >> "$GITHUB_OUTPUT"
+    echo "branch_detection_failed=${BRANCH_DETECTION_FAILED:-false}" >> "$GITHUB_OUTPUT"
 else
     echo "PR_NUMBER=$PR_NUMBER"
     echo "BRANCH_NAME=$BRANCH_NAME"
     echo "NEON_BRANCH_NAME=$NEON_BRANCH_NAME"
+    echo "BRANCH_DETECTION_FAILED=${BRANCH_DETECTION_FAILED:-false}"
 fi
 
 echo "🔍 Final values:"

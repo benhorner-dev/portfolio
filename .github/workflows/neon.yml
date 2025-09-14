@@ -13,6 +13,7 @@ jobs:
       branch: ${{ steps.extract_info.outputs.branch }}
       pr_number: ${{ steps.extract_info.outputs.pr_number }}
       neon_branch_name: ${{ steps.extract_info.outputs.neon_branch_name }}
+      branch_detection_failed: ${{ steps.extract_info.outputs.branch_detection_failed }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -46,7 +47,8 @@ jobs:
     if: |
       github.event_name == 'deployment_status' &&
       github.event.deployment_status.state == 'success' &&
-      github.event.deployment.environment == 'Preview'
+      github.event.deployment.environment == 'Preview' &&
+      needs.setup.outputs.branch_detection_failed != 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,7 +70,10 @@ jobs:
     name: Delete Preview Neon Branch
     uses: ./.github/workflows/neon-delete-branch.yml
     needs: setup
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.action == 'closed' &&
+      needs.setup.outputs.branch_detection_failed != 'true'
     with:
       branch_name: "${{ needs.setup.outputs.neon_branch_name }}"
     secrets: inherit
