@@ -1,16 +1,18 @@
-import { useRef } from "react";
-import { useChatStore } from "../stores/chatStore";
+import { useCallback, useRef } from "react";
 
 export const useChatScroll = () => {
 	const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-	const { setScrollPosition } = useChatStore();
+	const scrollToBottom = useCallback(() => {
+		setTimeout(() => {
+			if (messagesContainerRef.current) {
+				messagesContainerRef.current.scrollTo({
+					top: messagesContainerRef.current.scrollHeight,
+					behavior: "smooth",
+				});
+			}
+		}, 50);
+	}, []);
 
-	const handleScroll = () => {
-		if (messagesContainerRef.current) {
-			setScrollPosition(messagesContainerRef.current.scrollTop);
-		}
-	};
-
-	return { messagesContainerRef, handleScroll };
+	return { messagesContainerRef, scrollToBottom };
 };

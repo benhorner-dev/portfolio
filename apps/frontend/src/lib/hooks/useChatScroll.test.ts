@@ -21,18 +21,7 @@ describe("useChatScroll", () => {
 		const { result } = renderHook(() => useChatScroll());
 
 		expect(result.current.messagesContainerRef).toBeDefined();
-		expect(result.current.handleScroll).toBeDefined();
-	});
-
-	it("calls setScrollPosition when handleScroll is called with valid ref", () => {
-		const { result } = renderHook(() => useChatScroll());
-
-		const mockDiv = { scrollTop: 100 } as HTMLDivElement;
-		result.current.messagesContainerRef.current = mockDiv;
-
-		result.current.handleScroll();
-
-		expect(mockSetScrollPosition).toHaveBeenCalledWith(100);
+		expect(result.current.scrollToBottom).toBeDefined();
 	});
 
 	it("does not call setScrollPosition when ref.current is null", () => {
@@ -40,8 +29,29 @@ describe("useChatScroll", () => {
 
 		result.current.messagesContainerRef.current = null;
 
-		result.current.handleScroll();
+		result.current.scrollToBottom();
 
 		expect(mockSetScrollPosition).not.toHaveBeenCalled();
+	});
+
+	it("scrolls to bottom when ref.current exists", () => {
+		const { result } = renderHook(() => useChatScroll());
+
+		const mockScrollTo = vi.fn();
+		const mockElement = {
+			scrollTo: mockScrollTo,
+			scrollHeight: 1000,
+		} as unknown as HTMLDivElement;
+
+		result.current.messagesContainerRef.current = mockElement;
+
+		result.current.scrollToBottom();
+
+		vi.advanceTimersByTime(50);
+
+		expect(mockScrollTo).toHaveBeenCalledWith({
+			top: 1000,
+			behavior: "smooth",
+		});
 	});
 });
